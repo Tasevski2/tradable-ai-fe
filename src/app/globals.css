@@ -1,26 +1,357 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================
+   Premium Dark Theme for TradableAI
+   Trading/AI Strategy Builder Platform
+   ============================================ */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Background Hierarchy (5 levels for proper UI depth) */
+  --background: hsl(0, 0%, 4%); /* #0A0A0A - Deep black base */
+  --background-elevated: hsl(0, 0%, 8%); /* #141414 - Cards, panels */
+  --background-overlay: hsl(0, 0%, 12%); /* #1F1F1F - Dropdowns, modals */
+  --background-hover: hsl(0, 0%, 16%); /* #292929 - Hover states */
+  --background-active: hsl(0, 0%, 20%); /* #333333 - Active/pressed */
+
+  /* Text Colors */
+  --foreground: hsl(0, 0%, 98%); /* #FAFAFA - Primary text */
+  --foreground-muted: hsl(0, 0%, 60%); /* #999999 - Secondary text */
+  --foreground-subtle: hsl(0, 0%, 40%); /* #666666 - Placeholder, disabled */
+
+  /* Primary Accent (Gold - Premium) */
+  --primary: hsl(45, 100%, 50%); /* #FFC800 - Main gold */
+  --primary-dark: hsl(45, 100%, 40%); /* #CCA000 - Hover/pressed */
+  --primary-light: hsl(45, 100%, 60%); /* #FFD633 - Highlights */
+  --primary-foreground: hsl(0, 0%, 4%); /* #0A0A0A - Text on gold */
+
+  /* Trading Status Colors - Bullish (Bright Green) */
+  --bullish: hsl(142, 76%, 48%); /* #1FD85D - Profit, buy */
+  --bullish-dark: hsl(142, 76%, 38%); /* #18AC4A - Hover */
+  --bullish-light: hsl(142, 76%, 58%); /* #4AE37F - Highlights */
+
+  /* Trading Status Colors - Bearish (Vivid Red) */
+  --bearish: hsl(0, 84%, 55%); /* #EF4444 - Loss, sell */
+  --bearish-dark: hsl(0, 84%, 45%); /* #DC2626 - Hover */
+  --bearish-light: hsl(0, 84%, 65%); /* #F87171 - Highlights */
+
+  /* Semantic Status Colors */
+  --success: hsl(142, 76%, 48%); /* Same as bullish */
+  --warning: hsl(38, 92%, 50%); /* #F59E0B - Amber warning */
+  --error: hsl(0, 84%, 55%); /* Same as bearish */
+  --info: hsl(217, 91%, 60%); /* #3B82F6 - Blue info */
+
+  /* Border Colors */
+  --border: hsl(0, 0%, 20%); /* Solid gray #333333 - consistent and subtle */
+  --border-hover: hsl(45, 100%, 50%); /* Gold on hover */
+  --ring: hsl(45, 100%, 50%); /* Gold focus ring */
+  --radius: 0.625rem;
+
+  /* Card & Popover (use elevated background) */
+  --card: hsl(0, 0%, 8%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --popover: hsl(0, 0%, 12%);
+  --popover-foreground: hsl(0, 0%, 98%);
+
+  /* Secondary & Muted */
+  --secondary: hsl(0, 0%, 12%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --muted: hsl(0, 0%, 12%);
+  --muted-foreground: hsl(0, 0%, 60%);
+
+  /* Accent */
+  --accent: hsl(0, 0%, 12%);
+  --accent-foreground: hsl(0, 0%, 98%);
+
+  /* Destructive */
+  --destructive: hsl(0, 84%, 55%);
+
+  /* Input */
+  --input: hsl(0, 0%, 100% / 15%);
+
+  /* Chart Colors (Trading-optimized) */
+  --chart-1: hsl(45, 100%, 50%); /* Gold */
+  --chart-2: hsl(142, 76%, 48%); /* Green */
+  --chart-3: hsl(217, 91%, 60%); /* Blue */
+  --chart-4: hsl(280, 65%, 60%); /* Purple */
+  --chart-5: hsl(0, 84%, 55%); /* Red */
+
+  /* Sidebar */
+  --sidebar: hsl(0, 0%, 6%);
+  --sidebar-foreground: hsl(0, 0%, 98%);
+  --sidebar-primary: hsl(45, 100%, 50%);
+  --sidebar-primary-foreground: hsl(0, 0%, 4%);
+  --sidebar-accent: hsl(0, 0%, 12%);
+  --sidebar-accent-foreground: hsl(0, 0%, 98%);
+  --sidebar-border: hsl(0, 0%, 100% / 5%);
+  --sidebar-ring: hsl(45, 100%, 50%);
 }
 
 @theme inline {
+  /* Background colors */
   --color-background: var(--background);
+  --color-background-elevated: var(--background-elevated);
+  --color-background-overlay: var(--background-overlay);
+  --color-background-hover: var(--background-hover);
+  --color-background-active: var(--background-active);
+
+  /* Foreground colors */
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-subtle: var(--foreground-subtle);
+
+  /* Primary colors */
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-light: var(--primary-light);
+  --color-primary-foreground: var(--primary-foreground);
+
+  /* Trading colors */
+  --color-bullish: var(--bullish);
+  --color-bullish-dark: var(--bullish-dark);
+  --color-bullish-light: var(--bullish-light);
+  --color-bearish: var(--bearish);
+  --color-bearish-dark: var(--bearish-dark);
+  --color-bearish-light: var(--bearish-light);
+
+  /* Status colors */
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+
+  /* Borders */
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+
+  /* Fonts */
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* Box Shadows (Premium Glows) */
+  --shadow-glow-gold: 0 0 20px rgba(255, 200, 0, 0.25);
+  --shadow-glow-green: 0 0 20px rgba(31, 216, 93, 0.25);
+  --shadow-glow-red: 0 0 20px rgba(239, 68, 68, 0.25);
+
+  /* Sidebar */
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+
+  /* Chart colors */
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+
+  /* Other UI colors */
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Border radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--border);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  font-feature-settings:
+    "rlig" 1,
+    "calt" 1;
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+
+/* Gold gradient text for headings */
+.text-gradient-gold {
+  background: linear-gradient(
+    to right,
+    var(--primary-dark),
+    var(--primary),
+    var(--primary-light)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Card background */
+.bg-card {
+  background: var(--background-elevated);
+}
+
+/* Subtle card gradient for premium feel */
+.bg-card-gradient {
+  background: linear-gradient(135deg, hsl(0, 0%, 8%) 0%, hsl(0, 0%, 6%) 100%);
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.15s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.15s ease-out;
+}
+
+/* ============================================
+   Premium Mesh Gradient for Landing Page
+   ============================================ */
+
+.gradient-mesh-gold {
+  background:
+    /* Top layer - subtle */
+    radial-gradient(at 40% 10%, hsla(45, 100%, 60%, 0.15) 0px, transparent 45%),
+    radial-gradient(at 80% 5%, hsla(30, 100%, 55%, 0.12) 0px, transparent 35%),
+    /* Middle layer - medium */
+    radial-gradient(at 0% 40%, hsla(45, 100%, 55%, 0.2) 0px, transparent 50%),
+    radial-gradient(at 90% 45%, hsla(35, 100%, 50%, 0.15) 0px, transparent 45%),
+    radial-gradient(at 50% 50%, hsla(40, 100%, 55%, 0.12) 0px, transparent 55%),
+    /* Bottom layer - brightest */
+    radial-gradient(at 20% 85%, hsla(45, 100%, 65%, 0.28) 0px, transparent 50%),
+    radial-gradient(at 70% 90%, hsla(35, 100%, 60%, 0.25) 0px, transparent 45%),
+    radial-gradient(
+      at 40% 100%,
+      hsla(40, 100%, 60%, 0.22) 0px,
+      transparent 40%
+    ),
+    radial-gradient(at 90% 100%, hsla(30, 100%, 55%, 0.2) 0px, transparent 35%),
+    /* Base glow at bottom */
+    radial-gradient(at 50% 100%, hsla(45, 100%, 50%, 0.18) 0px, transparent 60%);
+}
+
+/* ============================================
+   Scrollbar Utilities
+   ============================================ */
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================
+   Dark Mode (Default - Dark Only App)
+   ============================================ */
+
+.dark {
+  --background: hsl(0, 0%, 4%);
+  --background-elevated: hsl(0, 0%, 8%);
+  --background-overlay: hsl(0, 0%, 12%);
+  --background-hover: hsl(0, 0%, 16%);
+  --background-active: hsl(0, 0%, 20%);
+
+  --foreground: hsl(0, 0%, 98%);
+  --foreground-muted: hsl(0, 0%, 60%);
+  --foreground-subtle: hsl(0, 0%, 40%);
+
+  --primary: hsl(45, 100%, 50%);
+  --primary-dark: hsl(45, 100%, 40%);
+  --primary-light: hsl(45, 100%, 60%);
+  --primary-foreground: hsl(0, 0%, 4%);
+
+  --card: hsl(0, 0%, 8%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --popover: hsl(0, 0%, 12%);
+  --popover-foreground: hsl(0, 0%, 98%);
+
+  --secondary: hsl(0, 0%, 12%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --muted: hsl(0, 0%, 12%);
+  --muted-foreground: hsl(0, 0%, 60%);
+  --accent: hsl(0, 0%, 12%);
+  --accent-foreground: hsl(0, 0%, 98%);
+
+  --destructive: hsl(0, 84%, 55%);
+  --border: hsl(0, 0%, 20%);
+  --input: hsl(0, 0%, 100% / 15%);
+  --ring: hsl(45, 100%, 50%);
+
+  --chart-1: hsl(45, 100%, 50%);
+  --chart-2: hsl(142, 76%, 48%);
+  --chart-3: hsl(217, 91%, 60%);
+  --chart-4: hsl(280, 65%, 60%);
+  --chart-5: hsl(0, 84%, 55%);
+
+  --sidebar: hsl(0, 0%, 6%);
+  --sidebar-foreground: hsl(0, 0%, 98%);
+  --sidebar-primary: hsl(45, 100%, 50%);
+  --sidebar-primary-foreground: hsl(0, 0%, 4%);
+  --sidebar-accent: hsl(0, 0%, 12%);
+  --sidebar-accent-foreground: hsl(0, 0%, 98%);
+  --sidebar-border: hsl(0, 0%, 100% / 5%);
+  --sidebar-ring: hsl(45, 100%, 50%);
+}
+
+/* ============================================
+   Base Layer Styles
+   ============================================ */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+button {
+  cursor: pointer;
 }
