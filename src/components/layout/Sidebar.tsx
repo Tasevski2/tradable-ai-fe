@@ -14,6 +14,7 @@ import {
   useAuthLoading,
 } from "@/stores/useAuthStore";
 import { UserProfileModal } from "@/components/layout/UserProfileModal";
+import { AccountSummary } from "@/components/layout/AccountSummary";
 import { ProfileSkeleton } from "@/components/ui/Skeleton";
 import {
   Tooltip,
@@ -113,6 +114,8 @@ export function Sidebar() {
             </Link>
           </TooltipProvider>
         </nav>
+
+        {isAuthenticated && <AccountSummary />}
 
         <div className="px-3 py-4 border-t border-border">
           {showApiKeysButton && (

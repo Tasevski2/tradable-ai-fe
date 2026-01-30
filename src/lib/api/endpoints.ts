@@ -13,6 +13,7 @@ export const API_ENDPOINTS = {
   },
   ACCOUNTS: {
     BASE: `${API_BASE}/accounts`,
+    SUMMARY: `${API_BASE}/accounts/summary`,
     SET_API_KEYS: `${API_BASE}/accounts/set-api-keys`,
     REMOVE_API_KEYS: `${API_BASE}/accounts/api-keys`,
   },

@@ -6,6 +6,7 @@ export const queryKeys = {
   account: {
     all: ["account"] as const,
     details: () => [...queryKeys.account.all, "details"] as const,
+    summary: () => [...queryKeys.account.all, "summary"] as const,
   },
   strategies: {
     all: ["strategies"] as const,

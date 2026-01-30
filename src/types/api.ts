@@ -54,3 +54,12 @@ export interface SetApiKeysResponse {
 export interface RemoveApiKeysResponse {
   success: boolean;
 }
+
+export interface AccountSummary {
+  availableBalance: string;
+  marginInUse: string;
+  unrealizedPnl: string;
+  liveStrategies: number;
+  openPositions: number;
+  totalRealizedPnl: string;
+}

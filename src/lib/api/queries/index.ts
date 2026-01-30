@@ -5,4 +5,5 @@
  */
 export * from './useUser';
 export * from './useBybitAccount';
+export * from './useAccountSummary';
 export * from './useStrategies';

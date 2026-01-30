@@ -12,6 +12,22 @@ export function formatCurrency(value: string | number): string {
   return `$${formatPrice(value)}`;
 }
 
+export function formatCompactCurrency(value: string | number): string {
+  const num = typeof value === "string" ? parseFloat(value) : value;
+
+  if (Math.abs(num) < 1000) {
+    return `$${num.toFixed(2)}`;
+  }
+
+  const formatter = new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    compactDisplay: "short",
+    maximumFractionDigits: 1,
+  });
+
+  return `$${formatter.format(num)}`;
+}
+
 export function formatNumber(value: string | number, decimals = 2): string {
   return new Decimal(value).toFixed(decimals);
 }
