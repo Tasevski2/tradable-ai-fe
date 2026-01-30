@@ -121,7 +121,7 @@ export function Sidebar() {
           {showApiKeysButton && (
             <button
               onClick={() => setIsProfileModalOpen(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mb-3 rounded-lg bg-primary text-background text-sm font-medium hover:opacity-90 transition-opacity"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mb-3 rounded-lg btn-primary text-sm"
             >
               <Key size={16} />
               Set Bybit API Keys
@@ -148,7 +148,7 @@ export function Sidebar() {
           ) : (
             <button
               onClick={login}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-background text-sm font-medium hover:opacity-90 transition-opacity"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg btn-primary text-sm"
             >
               Sign In
             </button>

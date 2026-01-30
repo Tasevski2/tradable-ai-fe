@@ -100,14 +100,14 @@ export function NewStrategyModal({ isOpen, onClose }: NewStrategyModalProps) {
             type="button"
             onClick={handleClose}
             disabled={createStrategyMutation.isPending}
-            className="flex-1 px-4 py-2.5 text-sm font-medium bg-background border border-border rounded-lg hover:border-foreground-muted transition-colors text-foreground disabled:opacity-50"
+            className="flex-1 px-4 py-2.5 text-sm btn-secondary rounded-lg disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={createStrategyMutation.isPending || !message.trim()}
-            className="flex-1 px-4 py-2.5 text-sm font-medium bg-primary text-background rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2.5 text-sm btn-primary rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {createStrategyMutation.isPending ? "Creating..." : "Create Strategy"}
           </button>

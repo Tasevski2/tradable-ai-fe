@@ -76,7 +76,7 @@ export function PromptInput() {
         <button
           onClick={handleSubmit}
           disabled={!prompt.trim() || isLoading}
-          className="w-fit self-end p-2 mr-2 rounded-lg bg-primary text-background disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+          className="w-fit self-end p-2 mr-2 rounded-lg btn-primary disabled:opacity-30 disabled:cursor-not-allowed"
           aria-label="Create strategy"
         >
           {isLoading ? (

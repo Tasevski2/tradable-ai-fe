@@ -35,14 +35,14 @@ export function StrategyListCard({ strategy }: StrategyListCardProps) {
       <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
         <Link
           href={`/strategies/${strategy.strategyId}`}
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium bg-primary text-background rounded-lg hover:opacity-90 transition-opacity"
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm btn-primary rounded-lg"
         >
           <Pencil size={14} />
           Edit
         </Link>
         <Link
           href={`/dashboard/strategies/${strategy.strategyId}`}
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium border border-border text-foreground rounded-lg hover:bg-background-elevated hover:border-primary/30 transition-all"
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm btn-secondary rounded-lg"
         >
           <Info size={14} />
           Details

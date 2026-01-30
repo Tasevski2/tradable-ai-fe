@@ -285,7 +285,7 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
               <button
                 type="submit"
                 disabled={setApiKeysMutation.isPending}
-                className="w-full px-4 py-2 text-sm font-medium bg-primary text-background rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 text-sm btn-primary rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {setApiKeysMutation.isPending
                   ? "Saving..."

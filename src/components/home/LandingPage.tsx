@@ -94,7 +94,7 @@ export function LandingPage() {
 
           <button
             onClick={login}
-            className="w-full py-4 bg-primary text-background font-semibold rounded-lg hover:opacity-90 transition-opacity text-lg"
+            className="w-full py-4 btn-primary rounded-lg text-lg"
           >
             Sign In & Start Building
           </button>
