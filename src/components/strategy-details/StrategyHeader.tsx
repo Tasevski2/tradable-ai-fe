@@ -2,19 +2,18 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Settings, Pause, Play, Rocket } from "lucide-react";
+import { Settings, Pause, Play, Rocket, Loader2 } from "lucide-react";
 import { StrategyStatusEnum } from "@/types/common";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StrategySettingsModal } from "./StrategySettingsModal";
 import { DeployModal } from "./DeployModal";
+import { useActivateStrategy, usePauseStrategy } from "@/lib/api/mutations";
 
 interface StrategyHeaderProps {
   strategyId: string;
   name: string;
   description: string | null;
   status: StrategyStatusEnum;
-  onPause?: () => void;
-  onResume?: () => void;
 }
 
 export function StrategyHeader({
@@ -22,14 +21,16 @@ export function StrategyHeader({
   name,
   description,
   status,
-  onPause,
-  onResume,
 }: StrategyHeaderProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isDeployOpen, setIsDeployOpen] = useState(false);
 
+  const { mutate: activate, isPending: isActivating } = useActivateStrategy();
+  const { mutate: pause, isPending: isPausing } = usePauseStrategy();
+
   const isConfigured = status !== StrategyStatusEnum.NOT_CONFIGURED;
   const isLive = status === StrategyStatusEnum.LIVE;
+  const isLoading = isActivating || isPausing;
 
   return (
     <div className="sticky top-0 z-20 backdrop-blur-xl bg-gradient-to-b from-background/90 to-background/65 border-b border-border">
@@ -59,10 +60,13 @@ export function StrategyHeader({
 
             {isConfigured && (
               <button
-                onClick={isLive ? onPause : onResume}
-                className="btn-danger px-3 py-2 text-[13px] rounded-xl flex items-center gap-2"
+                onClick={() => isLive ? pause(strategyId) : activate(strategyId)}
+                disabled={isLoading}
+                className="btn-danger px-3 py-2 text-[13px] rounded-xl flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLive ? (
+                {isLoading ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : isLive ? (
                   <>
                     <Pause size={14} />
                     Pause

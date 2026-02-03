@@ -270,3 +270,18 @@ export interface UpdateLiveConfigDto {
 export interface UpdateLiveConfigResponse {
   success: boolean;
 }
+
+/**
+ * Equity OHLC data point for backtest equity curve
+ */
+export interface EquityOHLCDto {
+  date: string;
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+}
+
+export interface BacktestEquityResponse {
+  data: EquityOHLCDto[];
+}

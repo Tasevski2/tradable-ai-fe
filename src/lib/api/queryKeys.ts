@@ -41,6 +41,10 @@ export const queryKeys = {
       [...queryKeys.backtests.all, "detail", strategyId, backtestId] as const,
     trades: (strategyId: string, backtestId: string, page?: number, limit?: number) =>
       [...queryKeys.backtests.all, "trades", strategyId, backtestId, { page, limit }] as const,
+    equityLatest: (strategyId: string) =>
+      [...queryKeys.backtests.all, "equityLatest", strategyId] as const,
+    equity: (strategyId: string, backtestId: string) =>
+      [...queryKeys.backtests.all, "equity", strategyId, backtestId] as const,
   },
   orders: {
     all: ["orders"] as const,

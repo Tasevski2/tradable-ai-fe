@@ -14,6 +14,7 @@ export * from './useStrategyBacktests';
 export * from './useStrategyActivities';
 export * from './useBacktestDetail';
 export * from './useBacktestTrades';
+export * from './useBacktestEquity';
 export * from './useStrategyOrders';
 export * from './useStrategyMarketsList';
 export * from './useMarketsWithStatus';

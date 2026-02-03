@@ -12,6 +12,8 @@ export const API_ENDPOINTS = {
     MARKETS_ALL_WITH_STATUS: (id: string) => `${API_BASE}/strategies/${id}/markets/all-with-status`,
     ACTIVITIES: (id: string) => `${API_BASE}/strategies/${id}/activities`,
     CREATE_WITH_PROMPT: `${API_BASE}/strategies/create-with-initial-prompt`,
+    ACTIVATE: (id: string) => `${API_BASE}/strategies/${id}/activate`,
+    PAUSE: (id: string) => `${API_BASE}/strategies/${id}/pause`,
   },
   CHAT: {
     BASE: `${API_BASE}/chat`,
@@ -39,6 +41,10 @@ export const API_ENDPOINTS = {
       `${API_BASE}/strategies/${strategyId}/backtests/${backtestId}`,
     TRADES: (strategyId: string, backtestId: string, page = 1, limit = 10) =>
       `${API_BASE}/strategies/${strategyId}/backtests/${backtestId}/trades?page=${page}&limit=${limit}`,
+    EQUITY_LATEST: (strategyId: string) =>
+      `${API_BASE}/strategies/${strategyId}/backtests/latest/equity`,
+    EQUITY: (strategyId: string, backtestId: string) =>
+      `${API_BASE}/strategies/${strategyId}/backtests/${backtestId}/equity`,
   },
   ORDERS: {
     BY_STRATEGY: (strategyId: string, page = 1, limit = 10) =>

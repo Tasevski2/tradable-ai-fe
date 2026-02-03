@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils/cn";
 import { getTimeframeLabel } from "@/lib/utils/timeframe";
@@ -13,9 +14,23 @@ import {
   formatDuration,
   formatDateTime,
 } from "@/lib/utils/format";
-import { useBacktestDetail } from "@/lib/api/queries";
+import { useBacktestDetail, useBacktestEquity } from "@/lib/api/queries";
 import { BacktestTradesModal } from "./BacktestTradesModal";
 import type { BacktestMetrics } from "@/types/api";
+
+// Dynamic import for SSR-safe chart
+const EquityCurveChart = dynamic(
+  () =>
+    import("@/components/charts/EquityCurveChart").then(
+      (m) => m.EquityCurveChart,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <Skeleton className="h-50 w-full rounded-xl bg-background-overlay" />
+    ),
+  },
+);
 
 interface BacktestDetailsProps {
   strategyId: string;
@@ -184,6 +199,11 @@ export function BacktestDetails({
     strategyId,
     backtestId,
   );
+  const { data: equityData, isLoading: isEquityLoading } = useBacktestEquity(
+    strategyId,
+    backtestId,
+    { enabled: !!backtest },
+  );
 
   if (isLoading) {
     return <BacktestDetailsSkeleton />;
@@ -285,8 +305,16 @@ export function BacktestDetails({
               </div>
             </div>
 
-            {/* Equity Curve Placeholder */}
-            <div className="chart-placeholder mt-3">Equity Curve</div>
+            {/* Equity Curve Chart */}
+            <div className="mt-3">
+              {isEquityLoading ? (
+                <Skeleton className="h-50 w-full rounded-xl bg-background-overlay" />
+              ) : equityData && equityData.length > 0 ? (
+                <EquityCurveChart data={equityData} height={200} />
+              ) : (
+                <div className="chart-placeholder">No equity data available</div>
+              )}
+            </div>
 
             {/* Tabs */}
             <div className="flex items-center justify-between flex-wrap gap-3 mt-3">

@@ -27,11 +27,15 @@ interface StrategyDetailPageProps {
   }>;
 }
 
-export default function StrategyDetailPage({ params }: StrategyDetailPageProps) {
+export default function StrategyDetailPage({
+  params,
+}: StrategyDetailPageProps) {
   // Unwrap params using React.use() pattern for Next.js 15+
   const { strategyId } = use(params);
 
-  const [selectedBacktestId, setSelectedBacktestId] = useState<string | undefined>();
+  const [selectedBacktestId, setSelectedBacktestId] = useState<
+    string | undefined
+  >();
   const { data: strategy, isLoading, error } = useStrategy(strategyId);
 
   // Handle 404 error
@@ -55,15 +59,6 @@ export default function StrategyDetailPage({ params }: StrategyDetailPageProps) 
     return <StrategyDetailPageSkeleton />;
   }
 
-  // Event handlers (placeholders - will connect to mutations later)
-  const handlePause = () => {
-    console.log("Pause strategy");
-  };
-
-  const handleResume = () => {
-    console.log("Resume strategy");
-  };
-
   const handleViewBacktestDetails = (backtestId: string) => {
     setSelectedBacktestId(backtestId);
   };
@@ -80,8 +75,6 @@ export default function StrategyDetailPage({ params }: StrategyDetailPageProps) 
         name={strategy.name}
         description={strategy.description}
         status={strategy.status}
-        onPause={handlePause}
-        onResume={handleResume}
       />
 
       {/* Main Content */}
@@ -90,9 +83,9 @@ export default function StrategyDetailPage({ params }: StrategyDetailPageProps) 
         <StrategySummary strategyId={strategy.id} />
 
         {/* Two Column Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-3.5 mt-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-3.5 mt-4">
           {/* Left Column */}
-          <div className="flex flex-col gap-3.5">
+          <div className="flex flex-col gap-3.5 min-w-0">
             <LivePositionsPanel strategyId={strategy.id} />
 
             <BacktestDetails
@@ -107,7 +100,7 @@ export default function StrategyDetailPage({ params }: StrategyDetailPageProps) 
           </div>
 
           {/* Right Column */}
-          <div className="flex flex-col gap-3.5">
+          <div className="flex flex-col gap-3.5 min-w-0">
             <StrategyFlowPanel
               draftVersion={strategy.draftConfigVersion}
               liveVersion={strategy.liveConfigVersion}
@@ -132,13 +125,13 @@ function StrategyDetailPageSkeleton() {
       <StrategyHeaderSkeleton />
       <div className="max-w-[1240px] mx-auto px-4 pb-16">
         <StrategySummarySkeleton />
-        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-3.5 mt-4">
-          <div className="flex flex-col gap-3.5">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-3.5 mt-4">
+          <div className="flex flex-col gap-3.5 min-w-0">
             <LivePositionsPanelSkeleton />
             <BacktestDetailsSkeleton />
             <BacktestHistoryPanelSkeleton />
           </div>
-          <div className="flex flex-col gap-3.5">
+          <div className="flex flex-col gap-3.5 min-w-0">
             <StrategyFlowPanel isLoading />
             <RecentActivityPanelSkeleton />
             <StrategyControlsPanel isLoading />
