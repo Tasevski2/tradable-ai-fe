@@ -295,6 +295,308 @@ body {
   border-color: rgba(255, 92, 122, 0.6);
 }
 
+/* Ghost Button */
+.btn-ghost {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--foreground);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-ghost:hover {
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ============================================
+   Panel Component
+   ============================================ */
+
+.panel {
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: 13px;
+  color: var(--foreground-muted);
+  font-weight: 800;
+  letter-spacing: 0.25px;
+  text-transform: uppercase;
+}
+
+.panel-body {
+  padding: 14px;
+}
+
+.panel-footer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+  background: rgba(7, 10, 16, 0.35);
+}
+
+/* ============================================
+   Status Badges & Pills
+   ============================================ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--foreground-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bullish);
+}
+
+.badge-dot.paused {
+  background: var(--warning);
+}
+
+.badge-dot.error {
+  background: var(--bearish);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--foreground-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pill-ok {
+  border-color: rgba(65, 240, 167, 0.35);
+  background: rgba(65, 240, 167, 0.08);
+  color: var(--bullish);
+}
+
+.pill-warn {
+  border-color: rgba(255, 209, 102, 0.35);
+  background: rgba(255, 209, 102, 0.08);
+  color: var(--warning);
+}
+
+.pill-bad {
+  border-color: rgba(255, 92, 122, 0.35);
+  background: rgba(255, 92, 122, 0.08);
+  color: var(--bearish);
+}
+
+/* ============================================
+   Symbol Chips
+   ============================================ */
+
+.chip {
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 12px;
+  color: var(--foreground-muted);
+  font-weight: 800;
+}
+
+.chip-more {
+  border-color: rgba(139, 92, 246, 0.45);
+  background: rgba(139, 92, 246, 0.12);
+  color: rgba(234, 240, 255, 0.9);
+}
+
+/* ============================================
+   KPI Cards
+   ============================================ */
+
+.kpi-card {
+  border: 1px solid var(--border);
+  background: rgba(10, 15, 27, 0.65);
+  border-radius: 14px;
+  padding: 12px;
+  min-height: 72px;
+}
+
+.kpi-label {
+  font-size: 12px;
+  color: var(--foreground-subtle);
+}
+
+.kpi-value {
+  font-size: 18px;
+  margin-top: 6px;
+  font-weight: 800;
+}
+
+.kpi-sub {
+  font-size: 12px;
+  color: var(--foreground-muted);
+  margin-top: 4px;
+}
+
+/* ============================================
+   Metric Cards
+   ============================================ */
+
+.metric-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(10, 15, 27, 0.55);
+  padding: 10px 12px;
+}
+
+.metric-label {
+  font-size: 12px;
+  color: var(--foreground-subtle);
+}
+
+.metric-value {
+  font-size: 14px;
+  font-weight: 800;
+  margin-top: 6px;
+}
+
+.metric-hint {
+  font-size: 12px;
+  color: var(--foreground-muted);
+  margin-top: 4px;
+}
+
+/* ============================================
+   Tabs
+   ============================================ */
+
+.tab {
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 12px;
+  color: var(--foreground-muted);
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tab-active {
+  color: var(--foreground);
+  border-color: rgba(139, 92, 246, 0.55);
+  background: rgba(139, 92, 246, 0.16);
+}
+
+/* ============================================
+   Event Cards (Activity Feed)
+   ============================================ */
+
+.event-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(10, 15, 27, 0.55);
+  padding: 10px 12px;
+}
+
+/* ============================================
+   Data Tables
+   ============================================ */
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-table th,
+.data-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.data-table th {
+  color: var(--foreground-subtle);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+
+/* ============================================
+   ReactFlow Placeholder
+   ============================================ */
+
+.flow-placeholder {
+  height: 440px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background:
+    radial-gradient(700px 240px at 20% 0%, rgba(34, 211, 238, 0.10), transparent 60%),
+    radial-gradient(700px 240px at 80% 30%, rgba(139, 92, 246, 0.14), transparent 60%),
+    rgba(10, 15, 27, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(234, 240, 255, 0.6);
+  font-weight: 800;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ============================================
+   Chart Placeholder
+   ============================================ */
+
+.chart-placeholder {
+  height: 220px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background:
+    radial-gradient(700px 200px at 20% 0%, rgba(139, 92, 246, 0.18), transparent 60%),
+    radial-gradient(700px 200px at 80% 30%, rgba(34, 211, 238, 0.12), transparent 60%),
+    rgba(10, 15, 27, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(234, 240, 255, 0.55);
+  font-weight: 800;
+}
+
 /* ============================================
    Animations
    ============================================ */

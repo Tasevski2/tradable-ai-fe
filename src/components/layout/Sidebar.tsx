@@ -52,17 +52,14 @@ export function Sidebar() {
         style={{ width: SIDEBAR_WIDTH }}
       >
         <div className="px-3 py-5 border-b border-border">
-          <Link href="/" className="flex items-center">
+          <Link href="/" className="h-10 w-40">
             <Image
-              src="/logo/192x192.png"
+              src="/logo/main.png"
               alt="TradableAI Logo"
-              width={32}
-              height={32}
+              height={40}
+              width={167}
               className="rounded-lg"
             />
-            <span className="text-lg font-semibold text-foreground">
-              TradableAI
-            </span>
           </Link>
         </div>
 

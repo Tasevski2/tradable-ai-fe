@@ -18,6 +18,11 @@ const STRATEGY_STATUS_STYLES: Record<StrategyStatusEnum, StatusStyle> = {
     text: "text-foreground/70",
     label: "Paused",
   },
+  [StrategyStatusEnum.NOT_CONFIGURED]: {
+    bg: "bg-foreground/10",
+    text: "text-foreground/50",
+    label: "Not Configured",
+  },
 };
 
 const BYBIT_SYNC_STATUS_STYLES: Record<BybitSyncStatusEnum, StatusStyle> = {

@@ -26,15 +26,12 @@ export function LandingPage() {
         <div className="w-full max-w-md space-y-8">
           <div className="flex items-center">
             <Image
-              src="/logo/512x512.png"
+              src="/logo/main.png"
               alt="TradableAI Logo"
-              width={48}
-              height={48}
+              height={60}
+              width={250}
               className="rounded-xl"
             />
-            <span className="text-2xl font-bold text-foreground">
-              TradableAI
-            </span>
           </div>
 
           <div className="space-y-3">

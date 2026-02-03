@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
+import { HoldButton } from "@/components/ui/HoldButton";
 import { useLogout } from "@/lib/auth/useLogout";
 import { useUserFromStore } from "@/stores/useAuthStore";
 import { useBybitAccount } from "@/lib/api/queries";
@@ -19,8 +20,6 @@ interface UserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const HOLD_DURATION_MS = 2000;
 
 export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
   const user = useUserFromStore();
@@ -48,11 +47,6 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
     },
   });
 
-  const [isHolding, setIsHolding] = useState(false);
-  const [holdProgress, setHoldProgress] = useState(0);
-  const holdStartTimeRef = useRef<number | null>(null);
-  const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
   useEffect(() => {
     if (!isOpen) {
       reset();
@@ -73,50 +67,6 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
       onSuccess: () => reset(),
     });
   });
-
-  const startHold = useCallback(() => {
-    if (removeApiKeysMutation.isPending) return;
-
-    setIsHolding(true);
-    holdStartTimeRef.current = Date.now();
-
-    holdIntervalRef.current = setInterval(() => {
-      if (holdStartTimeRef.current) {
-        const elapsed = Date.now() - holdStartTimeRef.current;
-        const progress = Math.min((elapsed / HOLD_DURATION_MS) * 100, 100);
-        setHoldProgress(progress);
-
-        if (progress >= 100) {
-          if (holdIntervalRef.current) {
-            clearInterval(holdIntervalRef.current);
-            holdIntervalRef.current = null;
-          }
-          setIsHolding(false);
-          holdStartTimeRef.current = null;
-          setHoldProgress(0);
-          removeApiKeysMutation.mutate();
-        }
-      }
-    }, 50);
-  }, []);
-
-  const endHold = useCallback(() => {
-    if (holdIntervalRef.current) {
-      clearInterval(holdIntervalRef.current);
-      holdIntervalRef.current = null;
-    }
-    setIsHolding(false);
-    holdStartTimeRef.current = null;
-    setHoldProgress(0);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (holdIntervalRef.current) {
-        clearInterval(holdIntervalRef.current);
-      }
-    };
-  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -298,28 +248,15 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
 
           {!isLoadingAccount && hasApiKeys && (
             <div className="pt-2">
-              <button
-                type="button"
-                onMouseDown={startHold}
-                onMouseUp={endHold}
-                onMouseLeave={endHold}
-                onTouchStart={startHold}
-                onTouchEnd={endHold}
-                disabled={removeApiKeysMutation.isPending}
-                className="relative w-full px-4 py-2 text-sm font-medium border border-bearish/30 text-bearish rounded-lg overflow-hidden transition-colors hover:border-bearish/50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <div
-                  className="absolute inset-0 bg-bearish/20 transition-all duration-75"
-                  style={{ width: `${holdProgress}%` }}
-                />
-                <span className="relative z-10">
-                  {removeApiKeysMutation.isPending
-                    ? "Removing..."
-                    : isHolding
-                      ? "Hold to remove..."
-                      : "Remove API Keys (Hold)"}
-                </span>
-              </button>
+              <HoldButton
+                onComplete={() => removeApiKeysMutation.mutate()}
+                isPending={removeApiKeysMutation.isPending}
+                labels={{
+                  default: "Remove API Keys (Hold)",
+                  holding: "Hold to remove...",
+                  pending: "Removing...",
+                }}
+              />
               <p className="text-xs text-foreground-muted mt-1 text-center">
                 Hold button for 2 seconds to remove
               </p>

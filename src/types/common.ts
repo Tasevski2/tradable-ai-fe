@@ -1,8 +1,8 @@
 export enum TimeframeEnum {
-  ONE_MIN = "1m",
-  FIVE_MIN = "5m",
-  FIFTEEN_MIN = "15m",
-  ONE_HOUR = "1h",
+  ONE_MIN = "M1",
+  FIVE_MIN = "M5",
+  FIFTEEN_MIN = "M15",
+  ONE_HOUR = "H1",
 }
 
 export enum OrderSideEnum {
@@ -11,6 +11,7 @@ export enum OrderSideEnum {
 }
 
 export enum StrategyStatusEnum {
+  NOT_CONFIGURED = "not_configured",
   LIVE = "live",
   PAUSED = "paused",
 }
@@ -21,9 +22,39 @@ export enum SSEEventEnum {
   BACKTEST_COMPLETE = "BACKTEST_COMPLETE",
 }
 
-export interface PaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
+export enum PositionIdx {
+  ONE_WAY = 0,
+  LONG = 1,
+  SHORT = 2,
+}
+
+export enum BacktestStatusEnum {
+  QUEUED = "queued",
+  RUNNING = "running",
+  SUCCESS = "success",
+  ERROR = "error",
+}
+
+export enum ActivityTypeEnum {
+  ORDER_FILLED = "ORDER_FILLED",
+  BACKTEST = "BACKTEST",
+  AI_STRATEGY_UPDATED = "AI_STRATEGY_UPDATED",
+}
+
+export enum OrderStatus {
+  SENT = "Sent",
+  NEW = "New",
+  PARTIALLY_FILLED = "PartiallyFilled",
+  UNTRIGGERED = "Untriggered",
+  FILLED = "Filled",
+  CANCELLED = "Cancelled",
+  REJECTED = "Rejected",
+  PARTIALLY_FILLED_CANCELLED = "PartiallyFilledCanceled",
+  TRIGGERED = "Triggered",
+  DEACTIVATED = "Deactivated",
+}
+
+export enum OrderType {
+  MARKET = "Market",
+  LIMIT = "Limit",
 }
