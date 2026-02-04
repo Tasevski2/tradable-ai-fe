@@ -1,40 +1,120 @@
 "use client";
 
 import { use } from "react";
-import { MessageSquare } from "lucide-react";
+import { notFound } from "next/navigation";
+import { useStrategy } from "@/lib/api/queries";
+import { APIError } from "@/lib/api/client";
+import {
+  BuilderHeader,
+  BuilderHeaderSkeleton,
+  ChatPanel,
+  ChatPanelSkeleton,
+  ChartDiagramPanel,
+  ChartDiagramPanelSkeleton,
+  BacktestPanel,
+  BacktestPanelSkeleton,
+} from "@/components/strategy-builder";
 
-interface StrategyDetailPageProps {
+interface StrategyBuilderPageProps {
   params: Promise<{
     strategyId: string;
   }>;
 }
 
-export default function StrategyDetailPage({
+export default function StrategyBuilderPage({
   params,
-}: StrategyDetailPageProps) {
+}: StrategyBuilderPageProps) {
   const { strategyId } = use(params);
 
-  return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-60px)] p-8">
-      <div className="text-center max-w-md">
-        <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-6">
-          <MessageSquare size={32} className="text-primary" />
-        </div>
+  const { data: strategy, isLoading, error } = useStrategy(strategyId);
 
-        <h1 className="text-2xl font-bold text-foreground mb-3">
-          Strategy Workspace
-        </h1>
+  // Handle 404 error
+  if (error instanceof APIError && error.status === 404) {
+    notFound();
+  }
 
-        <p className="text-foreground-muted mb-6">
-          This is where you&apos;ll build your trading strategy using AI. The
-          chat interface and trading chart will be added here.
-        </p>
-
-        <div className="inline-block px-4 py-2 bg-background-elevated border border-border rounded-lg">
-          <span className="text-sm text-foreground-muted">Strategy ID: </span>
-          <span className="text-sm font-mono text-foreground">{strategyId}</span>
+  // Handle other errors
+  if (error && !(error instanceof APIError && error.status === 404)) {
+    return (
+      <div className="p-8">
+        <div className="text-sm text-bearish bg-bearish/10 border border-bearish/20 rounded-lg px-4 py-3">
+          Failed to load strategy. Please try again.
         </div>
       </div>
+    );
+  }
+
+  // Loading state
+  if (isLoading || !strategy) {
+    return <StrategyBuilderPageSkeleton />;
+  }
+
+  return (
+    <div className="h-screen flex flex-col overflow-hidden">
+      {/* Sticky Header */}
+      <BuilderHeader
+        strategyId={strategy.id}
+        name={strategy.name}
+        description={strategy.description}
+        status={strategy.status}
+      />
+
+      {/* Main Content - Fullscreen Grid */}
+      <main className="flex-1 h-[calc(100vh-64px)] grid grid-cols-[420px_1fr] gap-3 p-3 overflow-hidden">
+        {/* Left: Chat Panel (full height) */}
+        <div className="h-full min-h-0 overflow-hidden">
+          <ChatPanel
+            strategyId={strategy.id}
+            draftVersion={strategy.draftConfigVersion}
+            liveVersion={strategy.liveConfigVersion}
+          />
+        </div>
+
+        {/* Right: Scrollable Column */}
+        <div className="h-full min-h-0 overflow-y-auto pr-0.5 flex flex-col gap-3">
+          {/* Chart / Diagram Panel */}
+          <div className="shrink-0">
+            <ChartDiagramPanel
+              draftConfigJson={strategy.draftConfigJson}
+              liveConfigJson={strategy.liveConfigJson}
+              draftVersion={strategy.draftConfigVersion}
+              liveVersion={strategy.liveConfigVersion}
+            />
+          </div>
+
+          {/* Backtests Panel */}
+          <div className="shrink-0">
+            <BacktestPanel
+              strategyId={strategy.id}
+              draftConfigJson={strategy.draftConfigJson}
+            />
+          </div>
+
+          {/* Bottom padding for scroll comfort */}
+          <div className="h-1" />
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function StrategyBuilderPageSkeleton() {
+  return (
+    <div className="h-screen flex flex-col overflow-hidden">
+      <BuilderHeaderSkeleton />
+      <main className="flex-1 h-[calc(100vh-64px)] grid grid-cols-[420px_1fr] gap-3 p-3 overflow-hidden">
+        <div className="h-full min-h-0 overflow-hidden">
+          <ChatPanelSkeleton />
+        </div>
+        <div className="h-full min-h-0 overflow-y-auto pr-0.5 flex flex-col gap-3">
+          <div className="shrink-0">
+            <ChartDiagramPanelSkeleton />
+          </div>
+          <div className="shrink-0">
+            <BacktestPanelSkeleton />
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

@@ -33,6 +33,8 @@ export const API_ENDPOINTS = {
       `${API_BASE}/positions/strategies/${strategyId}/close-all`,
   },
   BACKTESTS: {
+    RUN: (strategyId: string) =>
+      `${API_BASE}/strategies/${strategyId}/backtests`,
     BY_STRATEGY: (strategyId: string, page = 1, limit = 10) =>
       `${API_BASE}/strategies/${strategyId}/backtests?page=${page}&limit=${limit}`,
     LATEST: (strategyId: string) =>
@@ -51,6 +53,7 @@ export const API_ENDPOINTS = {
       `${API_BASE}/strategies/${strategyId}/orders?page=${page}&limit=${limit}`,
   },
   MARKETS: {
+    LIST: `${API_BASE}/markets`,
     BY_STRATEGY: (strategyId: string, page = 1, limit = 10, search?: string) =>
       `${API_BASE}/strategies/${strategyId}/markets?page=${page}&limit=${limit}${search ? `&search=${search}` : ""}`,
   },

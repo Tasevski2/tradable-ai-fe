@@ -16,14 +16,14 @@ export function useStrategyPositions(
   options: UseStrategyPositionsOptions = {},
 ) {
   const isAuthenticated = useIsAuthenticated();
-  const { page = 1, limit = 10, enabled = true } = options;
+  const { page = 1, limit = 5, enabled = true } = options;
 
   return useQuery({
     queryKey: queryKeys.positions.byStrategy(strategyId, page, limit),
     queryFn: async () => {
-      const response = await apiClient.get<PaginatedResponse<PositionAllocationItem>>(
-        API_ENDPOINTS.POSITIONS.BY_STRATEGY(strategyId, page, limit),
-      );
+      const response = await apiClient.get<
+        PaginatedResponse<PositionAllocationItem>
+      >(API_ENDPOINTS.POSITIONS.BY_STRATEGY(strategyId, page, limit));
       return response;
     },
     enabled: isAuthenticated && enabled && !!strategyId,

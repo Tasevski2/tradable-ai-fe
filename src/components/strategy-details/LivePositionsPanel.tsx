@@ -64,17 +64,20 @@ function ClosePositionButton({ strategyId, symbol }: ClosePositionButtonProps) {
 export function LivePositionsPanel({ strategyId }: LivePositionsPanelProps) {
   const [page, setPage] = useState(1);
   const [isOrdersModalOpen, setIsOrdersModalOpen] = useState(false);
-  const limit = 10;
 
-  const { data, isLoading } = useStrategyPositions(strategyId, { page, limit });
+  const { data, isLoading } = useStrategyPositions(strategyId, {
+    page,
+  });
 
-  if (isLoading || !data) {
-    return <LivePositionsPanelSkeleton />;
-  }
-
-  const positions = data.data;
-  const { startItem, endItem, totalItems, totalPages, hasNextPage, hasPreviousPage } =
-    usePaginationInfo(data.pagination);
+  const positions = data?.data || [];
+  const {
+    startItem,
+    endItem,
+    totalItems,
+    totalPages,
+    hasNextPage,
+    hasPreviousPage,
+  } = usePaginationInfo(data?.pagination);
 
   const handleViewOrders = () => {
     setIsOrdersModalOpen(true);
@@ -103,39 +106,47 @@ export function LivePositionsPanel({ strategyId }: LivePositionsPanelProps) {
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody>
-            {positions.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={5}
-                  className="text-center py-8 text-foreground-muted"
-                >
-                  No open positions
-                </td>
-              </tr>
-            ) : (
-              positions.map((position) => (
-                <tr key={position.id}>
-                  <td>
-                    <strong className="text-foreground">
-                      {position.symbol}
-                    </strong>
-                  </td>
-                  <td className={getPositionSideClass(position.positionIdx)}>
-                    {getPositionSide(position.positionIdx)}
-                  </td>
-                  <td>{formatValue(position.allocatedQty)}</td>
-                  <td>{position.entryPrice ? formatValue(position.entryPrice) : "—"}</td>
-                  <td>
-                    <ClosePositionButton
-                      strategyId={strategyId}
-                      symbol={position.symbol}
-                    />
+          {isLoading || !data ? (
+            <LivePositionsTableBodySkeleton />
+          ) : (
+            <tbody>
+              {positions.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="text-center py-8 text-foreground-muted"
+                  >
+                    No open positions
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
+              ) : (
+                positions.map((position) => (
+                  <tr key={position.id}>
+                    <td>
+                      <strong className="text-foreground">
+                        {position.symbol}
+                      </strong>
+                    </td>
+                    <td className={getPositionSideClass(position.positionIdx)}>
+                      {getPositionSide(position.positionIdx)}
+                    </td>
+                    <td>{formatValue(position.allocatedQty)}</td>
+                    <td>
+                      {position.entryPrice
+                        ? formatValue(position.entryPrice)
+                        : "—"}
+                    </td>
+                    <td>
+                      <ClosePositionButton
+                        strategyId={strategyId}
+                        symbol={position.symbol}
+                      />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          )}
         </table>
       </div>
 
@@ -172,6 +183,32 @@ export function LivePositionsPanel({ strategyId }: LivePositionsPanelProps) {
         strategyId={strategyId}
       />
     </div>
+  );
+}
+
+function LivePositionsTableBodySkeleton() {
+  return (
+    <tbody>
+      {[...Array(3)].map((_, i) => (
+        <tr key={i}>
+          <td>
+            <Skeleton className="h-4 w-20 bg-background-overlay" />
+          </td>
+          <td>
+            <Skeleton className="h-4 w-12 bg-background-overlay" />
+          </td>
+          <td>
+            <Skeleton className="h-4 w-14 bg-background-overlay" />
+          </td>
+          <td>
+            <Skeleton className="h-4 w-16 bg-background-overlay" />
+          </td>
+          <td>
+            <Skeleton className="h-6 w-14 rounded-lg bg-background-overlay" />
+          </td>
+        </tr>
+      ))}
+    </tbody>
   );
 }
 

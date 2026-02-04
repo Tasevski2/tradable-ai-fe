@@ -29,18 +29,41 @@ export const queryKeys = {
   positions: {
     all: ["positions"] as const,
     byStrategy: (strategyId: string, page?: number, limit?: number) =>
-      [...queryKeys.positions.all, "byStrategy", strategyId, { page, limit }] as const,
+      [
+        ...queryKeys.positions.all,
+        "byStrategy",
+        strategyId,
+        { page, limit },
+      ] as const,
   },
   backtests: {
     all: ["backtests"] as const,
+    forStrategy: (strategyId: string) =>
+      [...queryKeys.backtests.all, "forStrategy", strategyId] as const,
     byStrategy: (strategyId: string, page?: number, limit?: number) =>
-      [...queryKeys.backtests.all, "byStrategy", strategyId, { page, limit }] as const,
+      [
+        ...queryKeys.backtests.all,
+        "byStrategy",
+        strategyId,
+        { page, limit },
+      ] as const,
     latest: (strategyId: string) =>
       [...queryKeys.backtests.all, "latest", strategyId] as const,
     detail: (strategyId: string, backtestId: string) =>
       [...queryKeys.backtests.all, "detail", strategyId, backtestId] as const,
-    trades: (strategyId: string, backtestId: string, page?: number, limit?: number) =>
-      [...queryKeys.backtests.all, "trades", strategyId, backtestId, { page, limit }] as const,
+    trades: (
+      strategyId: string,
+      backtestId: string,
+      page?: number,
+      limit?: number,
+    ) =>
+      [
+        ...queryKeys.backtests.all,
+        "trades",
+        strategyId,
+        backtestId,
+        { page, limit },
+      ] as const,
     equityLatest: (strategyId: string) =>
       [...queryKeys.backtests.all, "equityLatest", strategyId] as const,
     equity: (strategyId: string, backtestId: string) =>
@@ -49,11 +72,22 @@ export const queryKeys = {
   orders: {
     all: ["orders"] as const,
     byStrategy: (strategyId: string, page?: number, limit?: number) =>
-      [...queryKeys.orders.all, "byStrategy", strategyId, { page, limit }] as const,
+      [
+        ...queryKeys.orders.all,
+        "byStrategy",
+        strategyId,
+        { page, limit },
+      ] as const,
   },
   markets: {
     all: ["markets"] as const,
+    list: () => [...queryKeys.markets.all, "list"] as const,
     byStrategy: (strategyId: string, search?: string) =>
       [...queryKeys.markets.all, "byStrategy", strategyId, { search }] as const,
+  },
+  chat: {
+    all: ["chat"] as const,
+    messages: (strategyId: string) =>
+      [...queryKeys.chat.all, "messages", strategyId] as const,
   },
 } as const;

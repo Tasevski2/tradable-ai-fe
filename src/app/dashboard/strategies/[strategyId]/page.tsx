@@ -59,14 +59,6 @@ export default function StrategyDetailPage({
     return <StrategyDetailPageSkeleton />;
   }
 
-  const handleViewBacktestDetails = (backtestId: string) => {
-    setSelectedBacktestId(backtestId);
-  };
-
-  const handleFullscreenFlow = () => {
-    console.log("Fullscreen flow");
-  };
-
   return (
     <div className="min-h-screen">
       {/* Sticky Header */}
@@ -91,11 +83,13 @@ export default function StrategyDetailPage({
             <BacktestDetails
               strategyId={strategy.id}
               backtestId={selectedBacktestId}
+              setSelectedBacktestId={setSelectedBacktestId}
             />
 
             <BacktestHistoryPanel
               strategyId={strategy.id}
-              onViewDetails={handleViewBacktestDetails}
+              selectedBacktestId={selectedBacktestId}
+              onViewDetails={setSelectedBacktestId}
             />
           </div>
 
@@ -106,7 +100,6 @@ export default function StrategyDetailPage({
               liveVersion={strategy.liveConfigVersion}
               draftConfig={strategy.draftConfigJson}
               liveConfig={strategy.liveConfigJson}
-              onFullscreen={handleFullscreenFlow}
             />
 
             <RecentActivityPanel strategyId={strategy.id} />

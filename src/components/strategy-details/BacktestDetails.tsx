@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils/cn";
@@ -35,6 +35,7 @@ const EquityCurveChart = dynamic(
 interface BacktestDetailsProps {
   strategyId: string;
   backtestId?: string;
+  setSelectedBacktestId: (backtestId: string) => void;
 }
 
 type TabType = "overview" | "trades" | "risk" | "activity";
@@ -192,6 +193,7 @@ function ActivityTab({ metrics }: { metrics: BacktestMetrics }) {
 export function BacktestDetails({
   strategyId,
   backtestId,
+  setSelectedBacktestId,
 }: BacktestDetailsProps) {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [isTradesModalOpen, setIsTradesModalOpen] = useState(false);
@@ -204,10 +206,6 @@ export function BacktestDetails({
     backtestId,
     { enabled: !!backtest },
   );
-
-  if (isLoading) {
-    return <BacktestDetailsSkeleton />;
-  }
 
   const tabs: { id: TabType; label: string }[] = [
     { id: "overview", label: "Overview" },
@@ -235,6 +233,16 @@ export function BacktestDetails({
         return null;
     }
   };
+
+  useEffect(() => {
+    if (backtestId || isLoading || !backtest) return;
+
+    setSelectedBacktestId(backtest.id);
+  }, [backtest]);
+
+  if (isLoading) {
+    return <BacktestDetailsSkeleton />;
+  }
 
   return (
     <div className="panel">
@@ -312,7 +320,9 @@ export function BacktestDetails({
               ) : equityData && equityData.length > 0 ? (
                 <EquityCurveChart data={equityData} height={200} />
               ) : (
-                <div className="chart-placeholder">No equity data available</div>
+                <div className="chart-placeholder">
+                  No equity data available
+                </div>
               )}
             </div>
 

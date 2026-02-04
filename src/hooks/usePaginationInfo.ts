@@ -12,18 +12,17 @@ interface PaginationInfo {
   isLastPage: boolean;
 }
 
-export function usePaginationInfo(pagination: PaginationMeta): PaginationInfo {
+export function usePaginationInfo(pagination?: PaginationMeta): PaginationInfo {
   const {
-    currentPage,
-    totalPages,
-    totalItems,
-    itemsPerPage,
-    hasNextPage,
-    hasPreviousPage,
-  } = pagination;
+    currentPage = 1,
+    totalPages = 1,
+    totalItems = 0,
+    itemsPerPage = 0,
+    hasNextPage = false,
+    hasPreviousPage = false,
+  } = pagination || {};
 
-  const startItem =
-    totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+  const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   return {

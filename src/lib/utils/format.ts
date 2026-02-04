@@ -155,6 +155,19 @@ export function formatSmartCurrency(
 }
 
 /**
+ * Format a date string to time only (e.g., "10:30")
+ */
+export function formatTime(dateString: string | null): string {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+/**
  * Format a date string for display (e.g., "Jan 15, 2024, 10:30 AM")
  */
 export function formatDateTime(dateString: string | null): string {

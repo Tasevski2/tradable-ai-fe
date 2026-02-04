@@ -1,33 +1,40 @@
 "use client";
 
 import { useState } from "react";
-import { Maximize2 } from "lucide-react";
+import { Expand } from "lucide-react";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { Modal } from "@/components/ui/Modal";
+import { StrategyFlowDiagram } from "@/components/strategy-flow";
 import { cn } from "@/lib/utils/cn";
 
 type ConfigSource = "draft" | "live";
 
 interface StrategyFlowPanelProps {
-  draftVersion: number | null;
-  liveVersion: number | null;
-  draftConfig: unknown | null;
-  liveConfig: unknown | null;
-  onFullscreen: () => void;
+  draftVersion?: number | null;
+  liveVersion?: number | null;
+  draftConfig?: unknown | null;
+  liveConfig?: unknown | null;
   isLoading?: boolean;
 }
 
 export function StrategyFlowPanel({
-  draftVersion = 11,
-  liveVersion = 12,
-  draftConfig = {},
-  liveConfig = {},
-  onFullscreen,
+  draftVersion,
+  liveVersion,
+  draftConfig,
+  liveConfig,
   isLoading = false,
-}: Partial<StrategyFlowPanelProps>) {
-  const [activeSource, setActiveSource] = useState<ConfigSource>(draftConfig ? "draft" : "live");
+}: StrategyFlowPanelProps) {
+  // Default to draft if available, otherwise live
+  const [activeSource, setActiveSource] = useState<ConfigSource>(
+    draftConfig != null ? "draft" : "live"
+  );
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const hasDraft = draftConfig !== null;
-  const hasLive = liveConfig !== null;
+  const hasDraft = draftConfig != null;
+  const hasLive = liveConfig != null;
+
+  // Get the active config based on selected source
+  const activeConfig = activeSource === "draft" ? draftConfig : liveConfig;
 
   if (isLoading) {
     return <StrategyFlowPanelSkeleton />;
@@ -62,23 +69,30 @@ export function StrategyFlowPanel({
       </div>
 
       <div className="panel-body">
-        <p className="text-xs text-foreground-subtle mb-3">
-          Render your ReactFlow here from the {activeSource} config
-        </p>
-
-        <div className="flow-placeholder">
-          ReactFlow Diagram Placeholder
-          <div className="absolute top-2.5 right-2.5 flex gap-2">
+        <div className="relative h-110">
+          <StrategyFlowDiagram config={activeConfig} />
+          <div className="absolute top-2.5 right-2.5 z-10">
             <button
-              onClick={onFullscreen}
-              className="btn-secondary px-3 py-1.5 text-[13px] rounded-xl flex items-center gap-1.5"
+              onClick={() => setIsFullscreen(true)}
+              disabled={activeConfig == null}
+              className="btn-secondary p-2 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Maximize2 size={14} />
-              Fullscreen
+              <Expand size={16} />
             </button>
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={isFullscreen}
+        onClose={() => setIsFullscreen(false)}
+        title="Strategy Flow"
+        size="fullscreen"
+      >
+        <div className="h-full">
+          <StrategyFlowDiagram config={activeConfig} />
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -94,8 +108,7 @@ export function StrategyFlowPanelSkeleton() {
         </div>
       </div>
       <div className="panel-body">
-        <Skeleton className="h-3 w-64 bg-background-overlay mb-3" />
-        <Skeleton className="h-[440px] w-full rounded-xl bg-background-overlay" />
+        <Skeleton className="h-110 w-full rounded-xl bg-background-overlay" />
       </div>
     </div>
   );

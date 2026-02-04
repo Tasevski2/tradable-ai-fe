@@ -16,7 +16,7 @@ export function useStrategyBacktests(
   options: UseStrategyBacktestsOptions = {},
 ) {
   const isAuthenticated = useIsAuthenticated();
-  const { page = 1, limit = 10, enabled = true } = options;
+  const { page = 1, limit = 5, enabled = true } = options;
 
   return useQuery({
     queryKey: queryKeys.backtests.byStrategy(strategyId, page, limit),

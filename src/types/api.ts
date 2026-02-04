@@ -285,3 +285,29 @@ export interface EquityOHLCDto {
 export interface BacktestEquityResponse {
   data: EquityOHLCDto[];
 }
+
+export interface RunBacktestDto {
+  symbol?: string;
+  timeframe?: TimeframeEnum;
+}
+
+export interface RunBacktestResponse {
+  backtestId: string;
+  status: string;
+}
+
+/**
+ * Chat message types for strategy builder AI chat
+ */
+export type ChatMessageRole = "user" | "assistant";
+
+export interface ChatMessage {
+  id: string;
+  role: ChatMessageRole;
+  content: string;
+  createdAt: string;
+}
+
+export interface ChatMessagesResponse {
+  data: ChatMessage[];
+}

@@ -1,18 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils/cn";
 import { formatPnlPercent, formatDateTime } from "@/lib/utils/format";
-import { useStrategyBacktests } from "@/lib/api/queries";
-import { usePaginationInfo } from "@/hooks";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { BacktestStatusEnum } from "@/types/common";
-import { BacktestHistoryTableSkeleton } from "../strategy-builder";
+import { useStrategyBacktests } from "@/lib/api/queries";
+import { useState } from "react";
 
-interface BacktestHistoryPanelProps {
+interface BacktestHistoryTableProps {
   strategyId: string;
-  selectedBacktestId?: string;
+  selectedId?: string;
   onViewDetails: (backtestId: string) => void;
 }
 
@@ -29,40 +27,40 @@ function getStatusPillClass(status: BacktestStatusEnum): string {
   }
 }
 
-export function BacktestHistoryPanel({
+export function BacktestHistoryTable({
   strategyId,
-  selectedBacktestId,
+  selectedId,
   onViewDetails,
-}: BacktestHistoryPanelProps) {
+}: BacktestHistoryTableProps) {
   const [page, setPage] = useState(1);
+  const { data, isLoading } = useStrategyBacktests(strategyId, {
+    page,
+    limit: 10,
+  });
+  const backtests = data?.data ?? [];
+  const pagination = data?.pagination ?? {
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  };
 
-  const { data, isLoading } = useStrategyBacktests(strategyId, { page });
-
-  const backtests = data?.data || [];
-  const {
-    startItem,
-    endItem,
-    totalItems,
-    totalPages,
-    hasNextPage,
-    hasPreviousPage,
-  } = usePaginationInfo(data?.pagination);
+  const { currentPage, totalPages, hasNextPage, hasPreviousPage } = pagination;
 
   return (
-    <div className="panel">
-      <div className="panel-header">
-        <h2>Backtest History</h2>
-      </div>
-
-      <div className="panel-body p-0">
+    <div className="flex flex-col border border-border/40 rounded-xl overflow-hidden bg-black/15">
+      {/* Table */}
+      <div>
         <table className="data-table">
           <thead>
             <tr>
               <th>Finished</th>
               <th>Symbol</th>
-              <th>Version</th>
+              <th>Ver</th>
               <th>Status</th>
-              <th>PnL</th>
+              <th>Result</th>
               <th></th>
             </tr>
           </thead>
@@ -84,13 +82,13 @@ export function BacktestHistoryPanel({
                   <tr
                     key={backtest.id}
                     className={cn(
-                      selectedBacktestId === backtest.id && "bg-primary/10",
+                      selectedId === backtest.id && "bg-primary/10",
                     )}
                   >
-                    <td className="text-foreground-muted">
+                    <td className="text-foreground-muted text-xs">
                       {formatDateTime(backtest.finishedAt)}
                     </td>
-                    <td>{backtest.symbol}</td>
+                    <td className="font-semibold">{backtest.symbol}</td>
                     <td>v{backtest.strategyVersion}</td>
                     <td>
                       <span
@@ -115,7 +113,7 @@ export function BacktestHistoryPanel({
                           {formatPnlPercent(backtest.totalPnlPct)}
                         </span>
                       ) : (
-                        <span className="text-foreground-muted">N/A</span>
+                        <span className="text-foreground-muted">—</span>
                       )}
                     </td>
                     <td>
@@ -124,9 +122,9 @@ export function BacktestHistoryPanel({
                         disabled={
                           backtest.status !== BacktestStatusEnum.SUCCESS
                         }
-                        className="btn-secondary px-2.5 py-1 text-xs rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="btn-secondary px-2 py-1 text-xs rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Details
+                        Open
                       </button>
                     </td>
                   </tr>
@@ -137,27 +135,28 @@ export function BacktestHistoryPanel({
         </table>
       </div>
 
+      {/* Pagination footer */}
       {backtests.length > 0 && (
-        <div className="panel-footer">
+        <div className="flex items-center justify-between px-3.5 py-2.5 border-t border-border bg-background/35">
           <span className="text-xs text-foreground-subtle">
-            Showing {startItem}–{endItem} from {totalItems}
+            Page {currentPage} of {totalPages}
           </span>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              onClick={() => setPage(currentPage - 1)}
               disabled={!hasPreviousPage}
-              className="btn-secondary px-3 py-1.5 text-[13px] rounded-xl flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-secondary px-2.5 py-1 text-xs rounded-lg flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <ChevronLeft size={14} />
+              <ChevronLeft size={12} />
               Previous
             </button>
             <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              onClick={() => setPage(currentPage + 1)}
               disabled={!hasNextPage}
-              className="btn-secondary px-3 py-1.5 text-[13px] rounded-xl flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-secondary px-2.5 py-1 text-xs rounded-lg flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
-              <ChevronRight size={14} />
+              <ChevronRight size={12} />
             </button>
           </div>
         </div>
@@ -195,55 +194,25 @@ function BacktestHistoryTableBodySkeleton() {
   );
 }
 
-export function BacktestHistoryPanelSkeleton() {
+export function BacktestHistoryTableSkeleton() {
   return (
-    <div className="panel">
-      <div className="panel-header">
+    <div className="flex flex-col border border-border/40 rounded-xl overflow-hidden bg-black/15">
+      <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-border">
         <Skeleton className="h-4 w-32 bg-background-overlay" />
+        <Skeleton className="h-6 w-36 rounded-full bg-background-overlay" />
       </div>
-      <div className="panel-body p-0">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Finished</th>
-              <th>Symbol</th>
-              <th>Version</th>
-              <th>Status</th>
-              <th>PnL</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {[...Array(5)].map((_, i) => (
-              <tr key={i}>
-                <td>
-                  <Skeleton className="h-4 w-28 bg-background-overlay" />
-                </td>
-                <td>
-                  <Skeleton className="h-4 w-16 bg-background-overlay" />
-                </td>
-                <td>
-                  <Skeleton className="h-4 w-10 bg-background-overlay" />
-                </td>
-                <td>
-                  <Skeleton className="h-6 w-16 rounded-full bg-background-overlay" />
-                </td>
-                <td>
-                  <Skeleton className="h-4 w-12 bg-background-overlay" />
-                </td>
-                <td>
-                  <Skeleton className="h-6 w-14 rounded-lg bg-background-overlay" />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="p-3.5">
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-10 w-full bg-background-overlay" />
+          ))}
+        </div>
       </div>
-      <div className="panel-footer">
-        <Skeleton className="h-4 w-32 bg-background-overlay" />
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-8 w-24 rounded-xl bg-background-overlay" />
-          <Skeleton className="h-8 w-20 rounded-xl bg-background-overlay" />
+      <div className="flex items-center justify-between px-3.5 py-2.5 border-t border-border">
+        <Skeleton className="h-4 w-20 bg-background-overlay" />
+        <div className="flex gap-2">
+          <Skeleton className="h-7 w-20 rounded-lg bg-background-overlay" />
+          <Skeleton className="h-7 w-16 rounded-lg bg-background-overlay" />
         </div>
       </div>
     </div>

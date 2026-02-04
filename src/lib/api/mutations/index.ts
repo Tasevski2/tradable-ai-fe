@@ -9,3 +9,4 @@ export * from "./useDeleteStrategy";
 export * from "./useDeployStrategy";
 export * from "./useActivateStrategy";
 export * from "./usePauseStrategy";
+export * from "./useRunBacktest";

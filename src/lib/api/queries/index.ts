@@ -18,3 +18,5 @@ export * from './useBacktestEquity';
 export * from './useStrategyOrders';
 export * from './useStrategyMarketsList';
 export * from './useMarketsWithStatus';
+export * from './useChatMessages';
+export * from './useMarkets';
