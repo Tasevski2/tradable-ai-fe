@@ -1,18 +1,19 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import { ReactQueryProvider } from '@/components/providers/ReactQueryProvider';
-import { PrivyProvider } from '@/components/providers/PrivyProvider';
-import { AuthProvider } from '@/components/providers/AuthProvider';
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
+import { PrivyProvider } from "@/components/providers/PrivyProvider";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 
 const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-sans',
+  subsets: ["latin"],
+  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
-  title: 'TradableAI - AI-Powered Trading Strategies',
-  description: 'Build, backtest, and deploy trading strategies with AI assistance',
+  title: "TradableAI - AI-Powered Trading Strategies",
+  description:
+    "Build, backtest, and deploy trading strategies with AI assistance",
 };
 
 export default function RootLayout({
@@ -22,7 +23,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body
+        className={`${inter.variable} font-sans antialiased`}
+        suppressHydrationWarning
+      >
         <ReactQueryProvider>
           <PrivyProvider>
             <AuthProvider>{children}</AuthProvider>

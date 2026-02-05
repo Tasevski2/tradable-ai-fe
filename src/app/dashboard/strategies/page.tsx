@@ -109,6 +109,9 @@ export default function DashboardStrategiesPage() {
             <SelectItem value="all">Any status</SelectItem>
             <SelectItem value={StrategyStatusEnum.LIVE}>Live</SelectItem>
             <SelectItem value={StrategyStatusEnum.PAUSED}>Paused</SelectItem>
+            <SelectItem value={StrategyStatusEnum.NOT_CONFIGURED}>
+              Not Configured
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>

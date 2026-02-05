@@ -146,7 +146,9 @@ export function DeployModal({ isOpen, onClose, strategyId }: DeployModalProps) {
       const initTimeframe = strategy.timeframe;
       const initPerOrderUsd = strategy.perOrderUsd ?? "";
       const initPromoteDraft =
-        strategy.liveConfigVersion === strategy.draftConfigVersion;
+        strategy.liveConfigVersion === 0
+          ? strategy.draftConfigVersion > 0
+          : strategy.liveConfigVersion === strategy.draftConfigVersion;
       const initDeployStatus =
         strategy.status === StrategyStatusEnum.NOT_CONFIGURED
           ? StrategyStatusEnum.LIVE
@@ -322,8 +324,15 @@ export function DeployModal({ isOpen, onClose, strategyId }: DeployModalProps) {
   // Combined: form isDirty + non-form changes
   const hasChanges = isDirty || hasNonFormChanges;
 
-  // Deploy button should be disabled if no changes made
-  const isDeployDisabled = !hasChanges || deployMutation.isPending;
+  // Config version checks (needed before early return for isDeployDisabled)
+  const noLiveConfig = strategy && strategy.liveConfigVersion === 0;
+  const bothVersionsZero =
+    strategy &&
+    strategy.liveConfigVersion === 0 &&
+    strategy.draftConfigVersion === 0;
+
+  // Deploy button should be disabled if no changes made or no config exists
+  const isDeployDisabled = !hasChanges || deployMutation.isPending || bothVersionsZero;
 
   const onDeploy = (formData: DeployStrategyFormData) => {
     const selectedSymbols = localMarkets
@@ -690,11 +699,12 @@ export function DeployModal({ isOpen, onClose, strategyId }: DeployModalProps) {
                     {/* Promote checkbox */}
                     <div
                       onClick={() =>
-                        !versionsMatch && setPromoteDraft(!promoteDraft)
+                        !(versionsMatch || noLiveConfig) &&
+                        setPromoteDraft(!promoteDraft)
                       }
                       className={cn(
                         "flex items-start gap-3 p-3 rounded-xl border transition-colors",
-                        versionsMatch
+                        versionsMatch || noLiveConfig
                           ? "border-border/50 bg-background-overlay/20 cursor-not-allowed opacity-70"
                           : promoteDraft
                             ? "border-primary/50 bg-primary/10 cursor-pointer"
@@ -718,14 +728,16 @@ export function DeployModal({ isOpen, onClose, strategyId }: DeployModalProps) {
                           Promote Draft → Live Config
                         </div>
                         <div className="text-xs text-foreground-muted mt-1">
-                          {versionsMatch
-                            ? "Draft and live configs are identical."
-                            : "Copies the draft strategy logic into the live strategy used for trading."}
+                          {noLiveConfig && !bothVersionsZero
+                            ? "No live config yet. Draft will be promoted on deploy."
+                            : versionsMatch
+                              ? "Draft and live configs are identical."
+                              : "Copies the draft strategy logic into the live strategy used for trading."}
                         </div>
                       </div>
                     </div>
 
-                    {!versionsMatch && !promoteDraft && (
+                    {!versionsMatch && !noLiveConfig && !promoteDraft && (
                       <div className="mt-3 text-xs text-warning">
                         Your draft config differs from live. Consider promoting
                         it.

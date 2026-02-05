@@ -1,39 +1,27 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api/client";
+import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { queryKeys } from "@/lib/api/queryKeys";
-import type { ChatMessage, ChatMessagesResponse } from "@/types/api";
+import { useIsAuthenticated } from "@/stores/useAuthStore";
+import type { ChatMessagesResponse } from "@/types/api";
 
-/**
- * Mock data for chat messages - will be replaced with real API later
- */
-const MOCK_MESSAGES: ChatMessage[] = [
-  {
-    id: "1",
-    role: "assistant",
-    content:
-      "Welcome! Describe the strategy you want to build. I'll update the draft rules and you can backtest on the right.",
-    createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-  },
-];
+const MESSAGES_PER_PAGE = 30;
 
-/**
- * Hook to fetch chat messages for a strategy
- *
- * Currently returns mock data - will be connected to real API later
- */
-export function useChatMessages(strategyId: string) {
-  return useQuery<ChatMessagesResponse>({
+export function useChatMessages(
+  strategyId: string,
+  options?: { enabled?: boolean },
+) {
+  const isAuthenticated = useIsAuthenticated();
+
+  return useInfiniteQuery({
     queryKey: queryKeys.chat.messages(strategyId),
-    queryFn: async () => {
-      // TODO: Replace with actual API call when backend is ready
-      // const response = await apiClient.get<ChatMessagesResponse>(
-      //   `${API_ENDPOINTS.CHAT.BASE}/${strategyId}/messages`
-      // );
-      // return response;
-
-      // Return mock data for now
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      return { data: MOCK_MESSAGES };
+    queryFn: async ({ pageParam }) => {
+      return apiClient.get<ChatMessagesResponse>(
+        API_ENDPOINTS.CHAT.MESSAGES(strategyId, MESSAGES_PER_PAGE, pageParam),
+      );
     },
-    staleTime: 0,
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: isAuthenticated && !!strategyId && (options?.enabled ?? true),
   });
 }

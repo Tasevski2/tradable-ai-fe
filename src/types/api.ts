@@ -310,4 +310,15 @@ export interface ChatMessage {
 
 export interface ChatMessagesResponse {
   data: ChatMessage[];
+  nextCursor: string | null;
+}
+
+export interface SendMessageResponse {
+  threadId: string;
+  messageId: string;
+}
+
+export interface ToolCallStatus {
+  name: string;
+  status: "calling" | "completed";
 }

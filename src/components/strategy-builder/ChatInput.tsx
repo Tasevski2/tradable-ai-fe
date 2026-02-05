@@ -16,7 +16,7 @@ interface ChatInputProps {
 export function ChatInput({
   onSubmit,
   isLoading = false,
-  placeholder = "Message the AI... (e.g., add trailing stop, reduce entries in chop, etc.)",
+  placeholder = "Message TradableAI...",
   disabled = false,
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);

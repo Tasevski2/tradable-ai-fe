@@ -8,15 +8,27 @@ export const API_ENDPOINTS = {
     BASE: `${API_BASE}/strategies`,
     DETAIL: (id: string) => `${API_BASE}/strategies/${id}`,
     LIVE_CONFIG: (id: string) => `${API_BASE}/strategies/${id}/live-config`,
-    MARKETS_SUMMARY: (id: string) => `${API_BASE}/strategies/${id}/markets/summary`,
-    MARKETS_ALL_WITH_STATUS: (id: string) => `${API_BASE}/strategies/${id}/markets/all-with-status`,
+    MARKETS_SUMMARY: (id: string) =>
+      `${API_BASE}/strategies/${id}/markets/summary`,
+    MARKETS_ALL_WITH_STATUS: (id: string) =>
+      `${API_BASE}/strategies/${id}/markets/all-with-status`,
     ACTIVITIES: (id: string) => `${API_BASE}/strategies/${id}/activities`,
     CREATE_WITH_PROMPT: `${API_BASE}/strategies/create-with-initial-prompt`,
     ACTIVATE: (id: string) => `${API_BASE}/strategies/${id}/activate`,
     PAUSE: (id: string) => `${API_BASE}/strategies/${id}/pause`,
   },
   CHAT: {
-    BASE: `${API_BASE}/chat`,
+    MESSAGES: (strategyId: string, limit?: number, before?: string) => {
+      const params = new URLSearchParams();
+      if (limit) params.set("limit", String(limit));
+      if (before) params.set("before", before);
+      const qs = params.toString();
+      return `${API_BASE}/strategies/${strategyId}/chat/messages${qs ? `?${qs}` : ""}`;
+    },
+    SEND: (strategyId: string) =>
+      `${API_BASE}/strategies/${strategyId}/chat/messages`,
+    STREAM: (strategyId: string, afterMessageId: string) =>
+      `${API_BASE}/strategies/${strategyId}/chat/stream?afterMessageId=${afterMessageId}`,
   },
   ACCOUNTS: {
     BASE: `${API_BASE}/accounts`,
@@ -34,7 +46,7 @@ export const API_ENDPOINTS = {
   },
   BACKTESTS: {
     RUN: (strategyId: string) =>
-      `${API_BASE}/strategies/${strategyId}/backtests`,
+      `${API_BASE}/strategies/${strategyId}/backtests/run`,
     BY_STRATEGY: (strategyId: string, page = 1, limit = 10) =>
       `${API_BASE}/strategies/${strategyId}/backtests?page=${page}&limit=${limit}`,
     LATEST: (strategyId: string) =>

@@ -31,6 +31,13 @@ class APIClient {
   }
 
   /**
+   * Get the current auth token (for SSE URL authentication)
+   */
+  async getAuthToken(): Promise<string | null> {
+    return this.getToken ? this.getToken() : null;
+  }
+
+  /**
    * Make an HTTP request to the backend
    */
   async request<T>(endpoint: string, options?: RequestInit): Promise<T> {

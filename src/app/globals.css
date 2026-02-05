@@ -11,14 +11,14 @@
 
 :root {
   /* Background Hierarchy (Navy-based) */
-  --background: #070A10; /* Deep navy base */
-  --background-elevated: #0C1220; /* Cards, panels */
-  --background-overlay: #0A0F1B; /* Dropdowns, modals */
+  --background: #070a10; /* Deep navy base */
+  --background-elevated: #0c1220; /* Cards, panels */
+  --background-overlay: #0a0f1b; /* Dropdowns, modals */
   --background-hover: rgba(255, 255, 255, 0.06); /* Hover states */
   --background-active: rgba(255, 255, 255, 0.08); /* Active/pressed */
 
   /* Text Colors (Blue-tinted white) */
-  --foreground: #EAF0FF; /* Primary text */
+  --foreground: #eaf0ff; /* Primary text */
   --foreground-muted: rgba(234, 240, 255, 0.68); /* Secondary text */
   --foreground-subtle: rgba(234, 240, 255, 0.48); /* Placeholder, disabled */
 
@@ -26,7 +26,7 @@
   --primary: #8b5cf6; /* Main purple */
   --primary-dark: #7c3aed; /* Hover/pressed */
   --primary-light: #a78bfa; /* Highlights */
-  --primary-foreground: #070A10; /* Text on purple */
+  --primary-foreground: #070a10; /* Text on purple */
 
   /* Brand Accent (Cyan) */
   --accent-brand: #22d3ee; /* Cyan accent */
@@ -55,20 +55,20 @@
   --radius: 16px;
 
   /* Card & Popover (use elevated background) */
-  --card: #0C1220;
-  --card-foreground: #EAF0FF;
-  --popover: #0A0F1B;
-  --popover-foreground: #EAF0FF;
+  --card: #0c1220;
+  --card-foreground: #eaf0ff;
+  --popover: #0a0f1b;
+  --popover-foreground: #eaf0ff;
 
   /* Secondary & Muted */
-  --secondary: #0A0F1B;
-  --secondary-foreground: #EAF0FF;
-  --muted: #0A0F1B;
+  --secondary: #0a0f1b;
+  --secondary-foreground: #eaf0ff;
+  --muted: #0a0f1b;
   --muted-foreground: rgba(234, 240, 255, 0.68);
 
   /* Accent */
-  --accent: #0A0F1B;
-  --accent-foreground: #EAF0FF;
+  --accent: #0a0f1b;
+  --accent-foreground: #eaf0ff;
 
   /* Destructive */
   --destructive: #ff5c7a;
@@ -84,12 +84,12 @@
   --chart-5: #ff5c7a; /* Red */
 
   /* Sidebar */
-  --sidebar: #070A10;
-  --sidebar-foreground: #EAF0FF;
+  --sidebar: #070a10;
+  --sidebar-foreground: #eaf0ff;
   --sidebar-primary: #8b5cf6;
-  --sidebar-primary-foreground: #070A10;
-  --sidebar-accent: #0A0F1B;
-  --sidebar-accent-foreground: #EAF0FF;
+  --sidebar-primary-foreground: #070a10;
+  --sidebar-accent: #0a0f1b;
+  --sidebar-accent-foreground: #eaf0ff;
   --sidebar-border: rgba(255, 255, 255, 0.08);
   --sidebar-ring: #8b5cf6;
 
@@ -200,8 +200,16 @@ body {
     "rlig" 1,
     "calt" 1;
   background:
-    radial-gradient(1000px 500px at 25% -10%, rgba(139, 92, 246, 0.18), transparent 60%),
-    radial-gradient(900px 520px at 80% 10%, rgba(34, 211, 238, 0.14), transparent 55%),
+    radial-gradient(
+      1000px 500px at 25% -10%,
+      rgba(139, 92, 246, 0.18),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 520px at 80% 10%,
+      rgba(34, 211, 238, 0.14),
+      transparent 55%
+    ),
     var(--background);
   background-attachment: fixed;
 }
@@ -225,11 +233,7 @@ body {
 
 /* Purple-Cyan gradient text for special headings */
 .text-gradient-brand {
-  background: linear-gradient(
-    135deg,
-    var(--primary),
-    var(--accent-brand)
-  );
+  background: linear-gradient(135deg, var(--primary), var(--accent-brand));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -242,7 +246,7 @@ body {
 
 /* Subtle card gradient for premium feel */
 .bg-card-gradient {
-  background: linear-gradient(135deg, #0C1220 0%, #070A10 100%);
+  background: linear-gradient(135deg, #0c1220 0%, #070a10 100%);
 }
 
 /* ============================================
@@ -252,19 +256,31 @@ body {
 /* Primary Action Button - Gradient style */
 .btn-primary {
   border: 1px solid rgba(139, 92, 246, 0.45);
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(34, 211, 238, 0.10));
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.25),
+    rgba(34, 211, 238, 0.1)
+  );
   color: var(--foreground);
   font-weight: 600;
   transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(34, 211, 238, 0.18));
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.35),
+    rgba(34, 211, 238, 0.18)
+  );
   border-color: rgba(139, 92, 246, 0.6);
 }
 
 .btn-primary:active {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(34, 211, 238, 0.22));
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.4),
+    rgba(34, 211, 238, 0.22)
+  );
 }
 
 /* Secondary Button - Subtle border style */
@@ -315,7 +331,11 @@ body {
 
 .panel {
   border: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.03),
+    rgba(255, 255, 255, 0.015)
+  );
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
@@ -566,8 +586,16 @@ body {
   border: 1px dashed rgba(255, 255, 255, 0.12);
   border-radius: 14px;
   background:
-    radial-gradient(700px 240px at 20% 0%, rgba(34, 211, 238, 0.10), transparent 60%),
-    radial-gradient(700px 240px at 80% 30%, rgba(139, 92, 246, 0.14), transparent 60%),
+    radial-gradient(
+      700px 240px at 20% 0%,
+      rgba(34, 211, 238, 0.1),
+      transparent 60%
+    ),
+    radial-gradient(
+      700px 240px at 80% 30%,
+      rgba(139, 92, 246, 0.14),
+      transparent 60%
+    ),
     rgba(10, 15, 27, 0.45);
   display: flex;
   align-items: center;
@@ -587,8 +615,16 @@ body {
   border: 1px dashed rgba(255, 255, 255, 0.12);
   border-radius: 14px;
   background:
-    radial-gradient(700px 200px at 20% 0%, rgba(139, 92, 246, 0.18), transparent 60%),
-    radial-gradient(700px 200px at 80% 30%, rgba(34, 211, 238, 0.12), transparent 60%),
+    radial-gradient(
+      700px 200px at 20% 0%,
+      rgba(139, 92, 246, 0.18),
+      transparent 60%
+    ),
+    radial-gradient(
+      700px 200px at 80% 30%,
+      rgba(34, 211, 238, 0.12),
+      transparent 60%
+    ),
     rgba(10, 15, 27, 0.45);
   display: flex;
   align-items: center;
@@ -636,15 +672,23 @@ body {
 .gradient-mesh {
   background:
     /* Top layer - Purple glow */
-    radial-gradient(1000px 500px at 25% -10%, rgba(139, 92, 246, 0.18), transparent 60%),
-    radial-gradient(900px 520px at 80% 10%, rgba(34, 211, 238, 0.14), transparent 55%),
+    radial-gradient(
+      1000px 500px at 25% -10%,
+      rgba(139, 92, 246, 0.18),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 520px at 80% 10%,
+      rgba(34, 211, 238, 0.14),
+      transparent 55%
+    ),
     /* Middle layer - subtle accents */
     radial-gradient(at 40% 10%, rgba(139, 92, 246, 0.15) 0px, transparent 45%),
     radial-gradient(at 80% 5%, rgba(34, 211, 238, 0.12) 0px, transparent 35%),
     radial-gradient(at 0% 40%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
-    radial-gradient(at 90% 45%, rgba(34, 211, 238, 0.10) 0px, transparent 45%),
+    radial-gradient(at 90% 45%, rgba(34, 211, 238, 0.1) 0px, transparent 45%),
     /* Bottom layer - brighter */
-    radial-gradient(at 20% 85%, rgba(139, 92, 246, 0.20) 0px, transparent 50%),
+    radial-gradient(at 20% 85%, rgba(139, 92, 246, 0.2) 0px, transparent 50%),
     radial-gradient(at 70% 90%, rgba(34, 211, 238, 0.18) 0px, transparent 45%),
     radial-gradient(at 50% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 60%);
 }
@@ -652,8 +696,16 @@ body {
 /* Alternative mesh with more cyan */
 .gradient-mesh-cyan {
   background:
-    radial-gradient(800px 400px at 70% -5%, rgba(34, 211, 238, 0.20), transparent 60%),
-    radial-gradient(700px 350px at 20% 15%, rgba(139, 92, 246, 0.15), transparent 55%),
+    radial-gradient(
+      800px 400px at 70% -5%,
+      rgba(34, 211, 238, 0.2),
+      transparent 60%
+    ),
+    radial-gradient(
+      700px 350px at 20% 15%,
+      rgba(139, 92, 246, 0.15),
+      transparent 55%
+    ),
     radial-gradient(at 80% 80%, rgba(34, 211, 238, 0.12) 0px, transparent 50%);
 }
 
@@ -670,20 +722,49 @@ body {
   display: none;
 }
 
+/* Custom themed scrollbar */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.25);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.45);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.25) transparent;
+}
+
 /* ============================================
    Dark Mode (Default - Dark Only App)
    ============================================ */
 
 .dark {
   /* Background Hierarchy (Navy-based) */
-  --background: #070A10;
-  --background-elevated: #0C1220;
-  --background-overlay: #0A0F1B;
+  --background: #070a10;
+  --background-elevated: #0c1220;
+  --background-overlay: #0a0f1b;
   --background-hover: rgba(255, 255, 255, 0.06);
   --background-active: rgba(255, 255, 255, 0.08);
 
   /* Text Colors (Blue-tinted white) */
-  --foreground: #EAF0FF;
+  --foreground: #eaf0ff;
   --foreground-muted: rgba(234, 240, 255, 0.68);
   --foreground-subtle: rgba(234, 240, 255, 0.48);
 
@@ -691,25 +772,25 @@ body {
   --primary: #8b5cf6;
   --primary-dark: #7c3aed;
   --primary-light: #a78bfa;
-  --primary-foreground: #070A10;
+  --primary-foreground: #070a10;
 
   /* Brand Accent (Cyan) */
   --accent-brand: #22d3ee;
   --accent-brand-dark: #06b6d4;
 
   /* Card & Popover */
-  --card: #0C1220;
-  --card-foreground: #EAF0FF;
-  --popover: #0A0F1B;
-  --popover-foreground: #EAF0FF;
+  --card: #0c1220;
+  --card-foreground: #eaf0ff;
+  --popover: #0a0f1b;
+  --popover-foreground: #eaf0ff;
 
   /* Secondary & Muted */
-  --secondary: #0A0F1B;
-  --secondary-foreground: #EAF0FF;
-  --muted: #0A0F1B;
+  --secondary: #0a0f1b;
+  --secondary-foreground: #eaf0ff;
+  --muted: #0a0f1b;
   --muted-foreground: rgba(234, 240, 255, 0.68);
-  --accent: #0A0F1B;
-  --accent-foreground: #EAF0FF;
+  --accent: #0a0f1b;
+  --accent-foreground: #eaf0ff;
 
   /* Status */
   --destructive: #ff5c7a;
@@ -725,12 +806,12 @@ body {
   --chart-5: #ff5c7a;
 
   /* Sidebar */
-  --sidebar: #070A10;
-  --sidebar-foreground: #EAF0FF;
+  --sidebar: #070a10;
+  --sidebar-foreground: #eaf0ff;
   --sidebar-primary: #8b5cf6;
-  --sidebar-primary-foreground: #070A10;
-  --sidebar-accent: #0A0F1B;
-  --sidebar-accent-foreground: #EAF0FF;
+  --sidebar-primary-foreground: #070a10;
+  --sidebar-accent: #0a0f1b;
+  --sidebar-accent-foreground: #eaf0ff;
   --sidebar-border: rgba(255, 255, 255, 0.08);
   --sidebar-ring: #8b5cf6;
 }

@@ -1,26 +1,20 @@
 import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
-import type { ApiResponse } from "@/types/api";
+import type { SendMessageResponse } from "@/types/api";
 
-interface PostChatMessageParams {
+interface SendChatMessageParams {
   strategyId: string;
   message: string;
 }
 
-interface PostChatMessageResponse {
-  messageId: string;
-  threadId: string;
-}
-
-export function usePostChatMessage() {
+export function useSendChatMessage() {
   return useMutation({
-    mutationFn: async ({ strategyId, message }: PostChatMessageParams) => {
-      const response = await apiClient.post<ApiResponse<PostChatMessageResponse>>(
-        `${API_ENDPOINTS.CHAT.BASE}/${strategyId}/messages`,
+    mutationFn: async ({ strategyId, message }: SendChatMessageParams) => {
+      return apiClient.post<SendMessageResponse>(
+        API_ENDPOINTS.CHAT.SEND(strategyId),
         { message },
       );
-      return response.data;
     },
   });
 }

@@ -1,7 +1,7 @@
 export * from "./useSetApiKeys";
 export * from "./useRemoveApiKeys";
 export * from "./useCreateStrategyWithPrompt";
-export * from "./usePostChatMessage";
+export * from "./usePostChatMessage"; // exports useSendChatMessage
 export * from "./useClosePosition";
 export * from "./useCloseAllPositions";
 export * from "./useUpdateStrategy";
