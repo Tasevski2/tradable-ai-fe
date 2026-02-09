@@ -8,31 +8,22 @@ export interface LogicalNodeData {
 }
 
 function LogicalNodeComponent({ data }: NodeProps<LogicalNodeData>) {
-  const { operator, signalType } = data;
-  const isBuy = signalType === "BUY";
+  const { operator } = data;
 
   return (
     <div className="px-3 py-1.5 rounded-full border border-primary/30 bg-primary/10 min-w-[50px]">
       <Handle
         type="target"
-        position={Position.Top}
-        className={`!w-2 !h-2 ${
-          isBuy
-            ? "!bg-bullish !border-bullish-dark"
-            : "!bg-bearish !border-bearish-dark"
-        }`}
+        position={Position.Left}
+        className="w-2! h-2! bg-border! border-border!"
       />
       <div className="text-center">
         <span className="text-xs font-bold text-primary">{operator}</span>
       </div>
       <Handle
         type="source"
-        position={Position.Bottom}
-        className={`!w-2 !h-2 ${
-          isBuy
-            ? "!bg-bullish !border-bullish-dark"
-            : "!bg-bearish !border-bearish-dark"
-        }`}
+        position={Position.Right}
+        className="w-2! h-2! bg-border! border-border!"
       />
     </div>
   );

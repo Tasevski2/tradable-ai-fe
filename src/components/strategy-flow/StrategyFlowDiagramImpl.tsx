@@ -46,7 +46,7 @@ export function StrategyFlowDiagramImpl({
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
       rawNodes,
       rawEdges,
-      "TB",
+      "LR",
     );
 
     return { nodes: layoutedNodes, edges: layoutedEdges, isEmpty: false };

@@ -32,12 +32,12 @@ function SignalNodeComponent({ data }: NodeProps<SignalNodeData>) {
         {signalType}
       </span>
       <Handle
-        type="source"
-        position={Position.Bottom}
-        className={`!w-2 !h-2 ${
+        type="target"
+        position={Position.Left}
+        className={`w-2! h-2! ${
           isBuy
-            ? "!bg-bullish !border-bullish-dark"
-            : "!bg-bearish !border-bearish-dark"
+            ? "bg-bullish! border-bullish-dark!"
+            : "bg-bearish! border-bearish-dark!"
         }`}
       />
     </div>

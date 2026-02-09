@@ -20,8 +20,17 @@ export function useRunBacktest() {
       );
     },
     onSuccess: (_, { strategyId }) => {
+      // Invalidate backtest list/table (partial key matches all pagination)
       queryClient.invalidateQueries({
-        queryKey: queryKeys.backtests.forStrategy(strategyId),
+        queryKey: ["backtests", "byStrategy", strategyId],
+      });
+      // Invalidate latest backtest query
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.backtests.latest(strategyId),
+      });
+      // Invalidate latest equity data
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.backtests.equityLatest(strategyId),
       });
     },
   });

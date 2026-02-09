@@ -1,16 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import { Expand, BarChart3 } from "lucide-react";
+import dynamic from "next/dynamic";
+import { Expand } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { StrategyFlowDiagram } from "@/components/strategy-flow";
 import { Modal } from "@/components/ui/Modal";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { StrategyStatusEnum } from "@/types/common";
+
+const TradingChart = dynamic(
+  () => import("@/components/charts/TradingChart").then((m) => m.TradingChart),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="absolute inset-0 flex items-center justify-center bg-background">
+        <Skeleton className="h-full w-full bg-background-overlay" />
+      </div>
+    ),
+  },
+);
 
 type TabType = "chart" | "diagram";
 type ConfigSource = "draft" | "live";
 
 interface ChartDiagramPanelProps {
+  strategyId: string;
   draftConfigJson: unknown | null;
   liveConfigJson: unknown | null;
   draftVersion: number;
@@ -19,6 +34,7 @@ interface ChartDiagramPanelProps {
 }
 
 export function ChartDiagramPanel({
+  strategyId,
   draftConfigJson,
   liveConfigJson,
   draftVersion,
@@ -74,13 +90,15 @@ export function ChartDiagramPanel({
           </button>
           <button
             onClick={() => {
-              setSelectedSource("live");
+              setSelectedSource(StrategyStatusEnum.LIVE);
               setActiveTab("diagram");
             }}
             disabled={liveConfigJson == null}
             className={cn(
               "pill cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed",
-              selectedSource === "live" ? "pill-ok" : "pill-muted",
+              selectedSource === StrategyStatusEnum.LIVE
+                ? "pill-ok"
+                : "pill-muted",
             )}
           >
             Live v{liveVersion}
@@ -93,7 +111,9 @@ export function ChartDiagramPanel({
         {/* Canvas */}
         <div className="flex-1 min-h-0 relative">
           {activeTab === "chart" ? (
-            <ChartPlaceholder />
+            <div className="absolute inset-0">
+              <TradingChart strategyId={strategyId} />
+            </div>
           ) : (
             <div className="absolute inset-0">
               <StrategyFlowDiagram
@@ -103,17 +123,19 @@ export function ChartDiagramPanel({
             </div>
           )}
 
-          {/* Fullscreen button */}
-          <div className="absolute top-2.5 right-2.5 z-10">
-            <button
-              onClick={() => setIsFullscreen(true)}
-              disabled={activeTab === "chart" || activeConfig == null}
-              className="btn-secondary p-2 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Fullscreen"
-            >
-              <Expand size={16} />
-            </button>
-          </div>
+          {/* Fullscreen button (diagram only) */}
+          {activeTab === "diagram" && (
+            <div className="absolute top-2.5 right-2.5 z-10">
+              <button
+                onClick={() => setIsFullscreen(true)}
+                disabled={activeConfig == null}
+                className="btn-secondary p-2 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Fullscreen"
+              >
+                <Expand size={16} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -128,25 +150,6 @@ export function ChartDiagramPanel({
           <StrategyFlowDiagram config={activeConfig} />
         </div>
       </Modal>
-    </div>
-  );
-}
-
-function ChartPlaceholder() {
-  return (
-    <div className="absolute inset-0 rounded-xl border border-dashed border-border/40 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 flex items-center justify-center">
-      <div className="text-center">
-        <BarChart3
-          size={48}
-          className="mx-auto mb-3 text-foreground-muted/50"
-        />
-        <p className="text-sm text-foreground-muted font-medium">
-          Chart Coming Soon
-        </p>
-        <p className="text-xs text-foreground-subtle mt-1">
-          Real-time candlestick chart with trade markers
-        </p>
-      </div>
     </div>
   );
 }

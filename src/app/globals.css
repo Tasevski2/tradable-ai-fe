@@ -752,6 +752,42 @@ body {
 }
 
 /* ============================================
+   KLineChart Pro Theme Overrides
+   ============================================ */
+
+.klinecharts-pro {
+  --klinecharts-pro-primary-color: rgba(139, 92, 246, 0.9);
+  --klinecharts-pro-hover-background-color: rgba(139, 92, 246, 0.15);
+  --klinecharts-pro-selected-color: rgba(139, 92, 246, 0.25);
+  --klinecharts-pro-text-color: #EAF0FF;
+  --klinecharts-pro-text-second-color: rgba(234, 240, 255, 0.48);
+  --klinecharts-pro-border-color: rgba(255, 255, 255, 0.08);
+  --klinecharts-pro-background-color: #070a10;
+  --klinecharts-pro-popover-background-color: #0c1220;
+  background-color: #070a10 !important;
+  height: 100% !important;
+}
+
+.klinecharts-pro-period-bar {
+  background-color: #0c1220 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.klinecharts-pro-period-bar .item {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Styled symbol search input */
+.klinecharts-pro-search-symbol-modal {
+  background-color: #0c1220 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ============================================
    Dark Mode (Default - Dark Only App)
    ============================================ */
 

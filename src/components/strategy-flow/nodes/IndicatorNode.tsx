@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Handle, Position, type NodeProps } from "reactflow";
+import { type NodeProps } from "reactflow";
 import { TrendingUp, Activity, BarChart3 } from "lucide-react";
 import type { IndicatorDefinition } from "@/types/strategy";
 import { INDICATOR_KINDS } from "@/types/strategy";
@@ -47,11 +47,6 @@ function IndicatorNodeComponent({ data }: NodeProps<IndicatorNodeData>) {
           )}
         </div>
       </div>
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        className="!w-2 !h-2 !bg-primary !border-primary-dark"
-      />
     </div>
   );
 }

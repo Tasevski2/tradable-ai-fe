@@ -21,6 +21,9 @@ export function usePauseStrategy() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.strategies.detail(strategyId),
       });
+      queryClient.invalidateQueries({
+        queryKey: ["strategies", "list"],
+      });
     },
   });
 }

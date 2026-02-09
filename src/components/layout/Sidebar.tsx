@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, Plus, ChevronRight, Layers, Key } from "lucide-react";
+import { House, Plus, ChevronRight, Key, BrainCog } from "lucide-react";
 import { useLogin } from "@/lib/auth/useLogin";
 import { useBybitAccount } from "@/lib/api/queries";
 import { BybitSyncStatusEnum } from "@/types/api";
@@ -106,7 +106,7 @@ export function Sidebar() {
                   : "text-foreground-muted hover:text-primary hover:bg-primary/10"
               }`}
             >
-              <Layers size={20} />
+              <BrainCog size={20} />
               <span className="text-sm font-medium">Strategies</span>
             </Link>
           </TooltipProvider>

@@ -7,7 +7,6 @@ import type {
 import {
   isLeafCondition,
   isLogicalCondition,
-  isIndicatorValueRef,
 } from "@/types/strategy";
 import type { IndicatorNodeData } from "../nodes/IndicatorNode";
 import type { SignalNodeData } from "../nodes/SignalNode";
@@ -20,28 +19,6 @@ type SignalType = "BUY" | "SELL";
 interface TransformResult {
   nodes: Node[];
   edges: Edge[];
-}
-
-/**
- * Extract all indicator IDs referenced in a condition tree.
- */
-function extractIndicatorRefs(node: ConditionNodeType): string[] {
-  const refs: string[] = [];
-
-  if (isLeafCondition(node)) {
-    if (isIndicatorValueRef(node.left)) {
-      refs.push(node.left.id);
-    }
-    if (isIndicatorValueRef(node.right)) {
-      refs.push(node.right.id);
-    }
-  } else if (isLogicalCondition(node)) {
-    node.args.forEach((arg) => {
-      refs.push(...extractIndicatorRefs(arg));
-    });
-  }
-
-  return [...new Set(refs)]; // Remove duplicates
 }
 
 /**
@@ -76,14 +53,14 @@ function transformConditionTree(
       ...nodeDimensions.condition,
     });
 
-    // Connect parent to this condition
+    // Connect this condition to parent (reversed for LR layout - conditions flow into signal)
     edges.push({
-      id: `edge-${parentId}-${nodeId}`,
-      source: parentId,
-      target: nodeId,
+      id: `edge-${nodeId}-${parentId}`,
+      source: nodeId,
+      target: parentId,
       style: {
-        stroke: signalType === "BUY" ? "var(--bullish)" : "var(--bearish)",
-        strokeWidth: 2,
+        stroke: "var(--border)",
+        strokeWidth: 1.5,
       },
     });
   } else if (isLogicalCondition(conditionNode)) {
@@ -101,14 +78,14 @@ function transformConditionTree(
       ...nodeDimensions.logical,
     });
 
-    // Connect parent to this logical node
+    // Connect this logical node to parent (reversed for LR layout)
     edges.push({
-      id: `edge-${parentId}-${nodeId}`,
-      source: parentId,
-      target: nodeId,
+      id: `edge-${nodeId}-${parentId}`,
+      source: nodeId,
+      target: parentId,
       style: {
-        stroke: signalType === "BUY" ? "var(--bullish)" : "var(--bearish)",
-        strokeWidth: 2,
+        stroke: "var(--border)",
+        strokeWidth: 1.5,
       },
     });
 
@@ -140,10 +117,6 @@ export function transformConfigToFlow(
   const edges: Edge[] = [];
 
   const { indicators, buySignal, sellSignal } = config;
-
-  // Track which indicators are used by buy vs sell signals
-  const buyIndicatorIds = extractIndicatorRefs(buySignal.when);
-  const sellIndicatorIds = extractIndicatorRefs(sellSignal.when);
 
   // Create indicator nodes
   indicators.forEach((indicator, index) => {
@@ -211,35 +184,6 @@ export function transformConfigToFlow(
   );
   nodes.push(...sellResult.nodes);
   edges.push(...sellResult.edges);
-
-  // Connect indicators to signal nodes (dashed lines)
-  buyIndicatorIds.forEach((indicatorId) => {
-    edges.push({
-      id: `edge-indicator-${indicatorId}-buy`,
-      source: `indicator-${indicatorId}`,
-      target: buySignalId,
-      style: {
-        stroke: "var(--primary)",
-        strokeWidth: 1.5,
-        strokeDasharray: "4 2",
-      },
-      animated: false,
-    });
-  });
-
-  sellIndicatorIds.forEach((indicatorId) => {
-    edges.push({
-      id: `edge-indicator-${indicatorId}-sell`,
-      source: `indicator-${indicatorId}`,
-      target: sellSignalId,
-      style: {
-        stroke: "var(--primary)",
-        strokeWidth: 1.5,
-        strokeDasharray: "4 2",
-      },
-      animated: false,
-    });
-  });
 
   return { nodes, edges };
 }

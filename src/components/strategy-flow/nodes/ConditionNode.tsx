@@ -52,8 +52,7 @@ function formatValueRef(
 }
 
 function ConditionNodeComponent({ data }: NodeProps<ConditionNodeData>) {
-  const { condition, indicators, signalType } = data;
-  const isBuy = signalType === "BUY";
+  const { condition, indicators } = data;
 
   const leftLabel = formatValueRef(condition.left, indicators);
   const rightLabel = formatValueRef(condition.right, indicators);
@@ -61,15 +60,6 @@ function ConditionNodeComponent({ data }: NodeProps<ConditionNodeData>) {
 
   return (
     <div className="px-3 py-2 rounded-xl border border-border bg-background-overlay min-w-[120px]">
-      <Handle
-        type="target"
-        position={Position.Top}
-        className={`!w-2 !h-2 ${
-          isBuy
-            ? "!bg-bullish !border-bullish-dark"
-            : "!bg-bearish !border-bearish-dark"
-        }`}
-      />
       <div className="text-center">
         <span className="text-xs text-foreground-muted">{leftLabel}</span>
         <span className="text-xs text-primary font-bold mx-1.5">{operator}</span>
@@ -77,12 +67,8 @@ function ConditionNodeComponent({ data }: NodeProps<ConditionNodeData>) {
       </div>
       <Handle
         type="source"
-        position={Position.Bottom}
-        className={`!w-2 !h-2 ${
-          isBuy
-            ? "!bg-bullish !border-bullish-dark"
-            : "!bg-bearish !border-bearish-dark"
-        }`}
+        position={Position.Right}
+        className="w-2! h-2! bg-border! border-border!"
       />
     </div>
   );

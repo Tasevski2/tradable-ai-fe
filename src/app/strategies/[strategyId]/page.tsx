@@ -75,6 +75,7 @@ export default function StrategyBuilderPage({
           {/* Chart / Diagram Panel */}
           <div className="shrink-0">
             <ChartDiagramPanel
+              strategyId={strategy.id}
               draftConfigJson={strategy.draftConfigJson}
               liveConfigJson={strategy.liveConfigJson}
               draftVersion={strategy.draftConfigVersion}

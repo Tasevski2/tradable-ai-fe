@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Strategy Builder — Fullscreen Layout</title>
+    <style>
+        :root {
+            --bg: #070A10;
+            --border: rgba(255, 255, 255, .08);
+            --text: #EAF0FF;
+            --muted: rgba(234, 240, 255, .68);
+            --muted2: rgba(234, 240, 255, .48);
+            --ok: #41f0a7;
+            --warn: #ffd166;
+            --bad: #ff5c7a;
+            --brand: #8b5cf6;
+            --brand2: #22d3ee;
+            --shadow: 0 12px 30px rgba(0, 0, 0, .45);
+            --radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%
+        }
+
+        body {
+            margin: 0;
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+            background: radial-gradient(1200px 520px at 25% -10%, rgba(139, 92, 246, .18), transparent 60%),
+                radial-gradient(1100px 520px at 80% 10%, rgba(34, 211, 238, .14), transparent 55%),
+                var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            /* important: we manage scroll areas inside */
+        }
+
+        /* ===== Header ===== */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            backdrop-filter: blur(12px);
+            background: linear-gradient(to bottom, rgba(7, 10, 16, .9), rgba(7, 10, 16, .65));
+            border-bottom: 1px solid var(--border);
+        }
+
+        .topbar-inner {
+            width: 100%;
+            padding: 14px 16px;
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .title {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 280px
+        }
+
+        .title h1 {
+            margin: 0;
+            font-size: 16px;
+            letter-spacing: .2px
+        }
+
+        .title p {
+            margin: 0;
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .spacer {
+            flex: 1
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 9px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .04);
+            color: var(--text);
+            font-weight: 900;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, .06)
+        }
+
+        .btn.primary {
+            border-color: rgba(139, 92, 246, .45);
+            background: linear-gradient(135deg, rgba(139, 92, 246, .25), rgba(34, 211, 238, .10));
+        }
+
+        .btn.ghost {
+            background: transparent;
+            border-color: transparent;
+        }
+
+        .btn.ghost:hover {
+            border-color: var(--border);
+            background: rgba(255, 255, 255, .03);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+            color: var(--muted);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--ok)
+        }
+
+        .dot.paused {
+            background: var(--warn)
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .pill.ok {
+            border-color: rgba(65, 240, 167, .35);
+            background: rgba(65, 240, 167, .08)
+        }
+
+        .pill.warn {
+            border-color: rgba(255, 209, 102, .35);
+            background: rgba(255, 209, 102, .08)
+        }
+
+        .pill.bad {
+            border-color: rgba(255, 92, 122, .35);
+            background: rgba(255, 92, 122, .08)
+        }
+
+        /* ===== Cards ===== */
+        .panel {
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .015));
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .panel .hd {
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel .hd h2 {
+            margin: 0;
+            font-size: 13px;
+            color: rgba(234, 240, 255, .78);
+            font-weight: 900;
+            letter-spacing: .25px;
+            text-transform: uppercase;
+        }
+
+        .panel .bd {
+            padding: 14px
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--muted2)
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.45
+        }
+
+        /* ===== Fullscreen layout =====
+         - Full width page
+         - Left chat: full height (header -> bottom)
+         - Right: column layout, scrollable
+      */
+        .main {
+            height: calc(100vh - 64px);
+            /* approx header height; ok for mock */
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            /* left fixed-ish, right fluid */
+            gap: 12px;
+            padding: 12px;
+        }
+
+        @media (max-width: 1100px) {
+            body {
+                overflow: auto
+            }
+
+            .main {
+                height: auto;
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== Left: Chat ===== */
+        .chat {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+            /* important for overflow */
+        }
+
+        .chat-messages {
+            padding: 14px;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 0;
+        }
+
+        .msg {
+            max-width: 92%;
+            border-radius: 16px;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, .10);
+            background: rgba(0, 0, 0, .22);
+        }
+
+        .msg.user {
+            margin-left: auto;
+            border-color: rgba(34, 211, 238, .25);
+            background: rgba(34, 211, 238, .08);
+        }
+
+        .msg.ai {
+            margin-right: auto;
+            border-color: rgba(139, 92, 246, .25);
+            background: rgba(139, 92, 246, .10);
+        }
+
+        .msg .meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: var(--muted2);
+            font-weight: 900;
+        }
+
+        .msg .body {
+            font-size: 13px;
+            color: rgba(234, 240, 255, .92);
+            line-height: 1.45;
+        }
+
+        .chat-tools {
+            padding: 12px 14px;
+            border-top: 1px solid var(--border);
+            background: rgba(7, 10, 16, .35);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .composer {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .textarea {
+            flex: 1;
+            min-height: 44px;
+            max-height: 160px;
+            resize: vertical;
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, .10);
+            background: rgba(0, 0, 0, .25);
+            color: var(--text);
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        /* ===== Right: Scroll column ===== */
+        .right {
+            height: 100%;
+            min-height: 0;
+            overflow: auto;
+            /* scroll the right side only */
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-right: 2px;
+            /* scrollbar breathing room */
+        }
+
+        /* Visual Builder (top) */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .tab {
+            padding: 7px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .tab.active {
+            color: var(--text);
+            border-color: rgba(139, 92, 246, .55);
+            background: rgba(139, 92, 246, .16);
+        }
+
+        .viz-body {
+            height: 60vh;
+            /* as requested */
+            min-height: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .viz-canvas {
+            flex: 1;
+            border: 1px dashed rgba(255, 255, 255, .12);
+            border-radius: 14px;
+            background: radial-gradient(700px 240px at 20% 0%, rgba(139, 92, 246, .14), transparent 60%),
+                radial-gradient(700px 240px at 80% 30%, rgba(34, 211, 238, .12), transparent 60%),
+                rgba(10, 15, 27, .45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(234, 240, 255, .6);
+            font-weight: 900;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mini-ui {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Backtests (bottom) */
+        .bt-body {
+            height: 60vh;
+            /* as requested */
+            min-height: 420px;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            /* history | details */
+            gap: 12px;
+            padding: 12px;
+        }
+
+        @media (max-width: 1300px) {
+            .bt-body {
+                grid-template-columns: 1fr
+            }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px
+        }
+
+        th,
+        td {
+            padding: 10px 10px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            vertical-align: middle
+        }
+
+        th {
+            color: var(--muted2);
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .2px
+        }
+
+        .table-wrap {
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 14px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, .16);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .table-scroll {
+            overflow: auto;
+            min-height: 0;
+        }
+
+        .footer-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            padding: 12px 14px;
+            border-top: 1px solid var(--border);
+            background: rgba(7, 10, 16, .35);
+        }
+
+        .kpi-grid {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .kpi {
+            border: 1px solid rgba(255, 255, 255, .10);
+            background: rgba(10, 15, 27, .60);
+            border-radius: 14px;
+            padding: 12px;
+            min-height: 72px;
+        }
+
+        .kpi .label {
+            font-size: 12px;
+            color: var(--muted2)
+        }
+
+        .kpi .value {
+            font-size: 18px;
+            margin-top: 6px;
+            font-weight: 900
+        }
+
+        .kpi .sub {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px
+        }
+
+        .value.ok {
+            color: var(--ok)
+        }
+
+        .value.bad {
+            color: var(--bad)
+        }
+
+        .details-block {
+            border: 1px solid rgba(255, 255, 255, .10);
+            border-radius: 14px;
+            background: rgba(10, 15, 27, .55);
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .details-block h3 {
+            margin: 0 0 8px;
+            font-size: 12px;
+            color: var(--muted2);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .2px;
+        }
+
+        /* Optional: small settings panel note */
+        .inline-note {
+            border: 1px solid rgba(139, 92, 246, .25);
+            background: rgba(139, 92, 246, .08);
+            border-radius: 14px;
+            padding: 10px 12px;
+            color: rgba(234, 240, 255, .86);
+            font-size: 12px;
+            font-weight: 900;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="topbar">
+        <div class="topbar-inner">
+            <div class="title">
+                <h1>Strategy Builder — Momentum Breakout</h1>
+                <p>Strategy ID: 2a5f... • Thread: 9c1e... • Draft v12 • Live v11</p>
+            </div>
+
+            <div class="spacer"></div>
+
+            <div class="row">
+                <span class="badge"><span class="dot paused"></span>Paused</span>
+                <span class="badge">TF: 15m</span>
+                <span class="badge">Symbols: 30</span>
+
+                <button class="btn">Open Details</button>
+                <button class="btn">Save Draft</button>
+                <button class="btn primary">Deploy</button>
+                <button class="btn ghost" title="Settings">⚙️</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fullscreen main -->
+    <div class="main">
+        <!-- LEFT: Chat full height -->
+        <div class="panel chat">
+            <div class="hd">
+                <h2>AI Chat</h2>
+                <div class="row">
+                    <span class="pill warn">Draft differs</span>
+                    <button class="btn">Summary</button>
+                </div>
+            </div>
+
+            <div class="chat-messages">
+                <div class="msg ai">
+                    <div class="meta"><span>Assistant</span><span>12:01</span></div>
+                    <div class="body">
+                        Describe the strategy you want. I’ll update the draft rules and you can backtest on the right.
+                    </div>
+                </div>
+
+                <div class="msg user">
+                    <div class="meta"><span>You</span><span>12:02</span></div>
+                    <div class="body">
+                        EMA trend filter + RSI confirmation + ATR exits. Add cooldown after stop loss.
+                    </div>
+                </div>
+
+                <div class="msg ai">
+                    <div class="meta"><span>Assistant</span><span>12:03</span></div>
+                    <div class="body">
+                        Updated draft: EMA(50) trend filter, RSI(14) confirmation, ATR-based stop/TP, cooldown=6 candles
+                        after stop.
+                        <br><br>
+                        Want the RSI confirmation on cross above 50 or just RSI > 50?
+                    </div>
+                </div>
+
+                <div class="msg user">
+                    <div class="meta"><span>You</span><span>12:04</span></div>
+                    <div class="body">Cross above 50.</div>
+                </div>
+
+                <div class="msg ai">
+                    <div class="meta"><span>Assistant</span><span>12:05</span></div>
+                    <div class="body">
+                        Done. Run a backtest below; if good, deploy when ready.
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-tools">
+                <div class="row" style="justify-content:space-between">
+                    <span class="hint">Enter changes in plain language.</span>
+                    <div class="row">
+                        <button class="btn">Undo</button>
+                        <button class="btn">Clear</button>
+                    </div>
+                </div>
+
+                <div class="composer">
+                    <textarea class="textarea"
+                        placeholder="Message the AI… (e.g., add trailing stop, reduce entries in chop, etc.)"></textarea>
+                    <button class="btn primary">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Scrollable column -->
+        <div class="right">
+            <!-- TOP: Chart/Diagram (60vh) -->
+            <div class="panel">
+                <div class="hd">
+                    <h2>Chart / Strategy Diagram</h2>
+                    <div class="row">
+                        <div class="tabs">
+                            <span class="tab active">Chart</span>
+                            <span class="tab">Diagram</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bd viz-body">
+                    <div class="row" style="justify-content:space-between">
+                    </div>
+
+                    <div class="viz-canvas">
+                        Chart Placeholder
+                    </div>
+
+                    <div class="footer-actions">
+                        <span class="hint">Toggle: indicators / trades / signals</span>
+                        <div class="row">
+                            <button class="btn">Indicators</button>
+                            <button class="btn">Trades</button>
+                            <button class="btn">Signals</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTTOM: Backtests (60vh) -->
+            <div class="panel">
+                <div class="hd">
+                    <h2>Backtests</h2>
+                    <div class="row">
+                        <button class="btn">⚙️ Settings</button>
+                        <button class="btn primary">Run Backtest</button>
+                    </div>
+                </div>
+
+                <div class="bt-body">
+                    <!-- History -->
+                    <div class="table-wrap">
+                        <div class="footer-actions" style="border-top:none; border-bottom:1px solid var(--border)">
+                            <span class="hint">History (10 rows max • paginate)</span>
+                            <div class="row">
+                                <span class="badge">Default: BTCUSDT • 15m</span>
+                            </div>
+                        </div>
+
+                        <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Finished</th>
+                                        <th>Symbol</th>
+                                        <th>TF</th>
+                                        <th>Ver</th>
+                                        <th>Status</th>
+                                        <th>Result</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Today 11:48</td>
+                                        <td><strong>BTCUSDT</strong></td>
+                                        <td>15m</td>
+                                        <td>v12</td>
+                                        <td><span class="pill ok">success</span></td>
+                                        <td style="font-weight:900; color:var(--ok)">+8.2%</td>
+                                        <td><button class="btn">Open</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Yesterday 21:10</td>
+                                        <td><strong>ETHUSDT</strong></td>
+                                        <td>15m</td>
+                                        <td>v12</td>
+                                        <td><span class="pill ok">success</span></td>
+                                        <td style="font-weight:900; color:var(--ok)">+4.0%</td>
+                                        <td><button class="btn">Open</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Yesterday 19:02</td>
+                                        <td><strong>SOLUSDT</strong></td>
+                                        <td>15m</td>
+                                        <td>v11</td>
+                                        <td><span class="pill bad">error</span></td>
+                                        <td class="muted">Data gap</td>
+                                        <td><button class="btn">Open</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Yesterday 14:33</td>
+                                        <td><strong>BTCUSDT</strong></td>
+                                        <td>5m</td>
+                                        <td>v10</td>
+                                        <td><span class="pill ok">success</span></td>
+                                        <td style="font-weight:900; color:var(--ok)">+2.1%</td>
+                                        <td><button class="btn">Open</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2 days ago</td>
+                                        <td><strong>ETHUSDT</strong></td>
+                                        <td>1h</td>
+                                        <td>v9</td>
+                                        <td><span class="pill warn">running</span></td>
+                                        <td class="muted">—</td>
+                                        <td><button class="btn">Open</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="footer-actions">
+                            <span class="hint">Showing 1–10</span>
+                            <div class="row">
+                                <button class="btn">Previous</button>
+                                <button class="btn">Next</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Details (not modal) -->
+                    <div class="panel" style="box-shadow:none; background:rgba(255,255,255,.02);">
+                        <div class="hd">
+                            <h2>Selected Backtest</h2>
+                            <div class="row">
+                                <span class="pill ok">BTCUSDT • 15m • v12</span>
+                                <button class="btn">View Trades</button>
+                            </div>
+                        </div>
+
+                        <div class="bd" style="overflow:auto; min-height:0;">
+                            <div class="kpi-grid">
+                                <div class="kpi">
+                                    <div class="label">Net PnL</div>
+                                    <div class="value ok">+$412.50</div>
+                                    <div class="sub">+8.2%</div>
+                                </div>
+                                <div class="kpi">
+                                    <div class="label">Win Rate</div>
+                                    <div class="value">61%</div>
+                                    <div class="sub">Trades: 184</div>
+                                </div>
+                                <div class="kpi">
+                                    <div class="label">Max Drawdown</div>
+                                    <div class="value bad">-4.1%</div>
+                                    <div class="sub">-$124.20</div>
+                                </div>
+                                <div class="kpi">
+                                    <div class="label">Avg Hold</div>
+                                    <div class="value">34 min</div>
+                                    <div class="sub">2.8 trades/day</div>
+                                </div>
+                            </div>
+
+                            <div class="details-block">
+                                <h3>Backtest Window</h3>
+                                <div class="muted">Start: 2025-12-01 • End: 2026-01-29</div>
+                                <div class="hint" style="margin-top:8px">
+                                    Tip: Selecting a row updates this panel + overlays trades on the Chart above.
+                                </div>
+                            </div>
+
+                            <div class="details-block">
+                                <h3>Equity Curve Preview</h3>
+                                <div class="viz-canvas" style="height:220px; min-height:220px;">
+                                    Mini Equity Curve Placeholder
+                                </div>
+                            </div>
+
+                            <div class="inline-note">
+                                Backtest settings (symbol + timeframe) can be stored in localStorage.
+                                “Run Backtest” uses the saved settings by default.
+                            </div>
+                        </div>
+
+                        <div class="footer-actions">
+                            <span class="hint">Data: Backtest.metrics + equity points + trades</span>
+                            <div class="row">
+                                <button class="btn">Export</button>
+                                <button class="btn">Compare</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- optional extra spacing at bottom for scroll comfort -->
+            <div style="height:4px"></div>
+        </div>
+    </div>
+</body>
+
+</html>

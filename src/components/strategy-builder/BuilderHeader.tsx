@@ -11,7 +11,7 @@ import {
   ExternalLink,
   Menu,
   Home,
-  LayoutDashboard,
+  BrainCog,
 } from "lucide-react";
 import { StrategyStatusEnum } from "@/types/common";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -75,7 +75,7 @@ export function BuilderHeader({
                     href="/dashboard/strategies"
                     className="flex items-center gap-2.5"
                   >
-                    <LayoutDashboard size={14} />
+                    <BrainCog size={14} />
                     Strategies
                   </Link>
                 </MenubarItem>

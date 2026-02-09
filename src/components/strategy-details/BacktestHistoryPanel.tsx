@@ -8,7 +8,6 @@ import { formatPnlPercent, formatDateTime } from "@/lib/utils/format";
 import { useStrategyBacktests } from "@/lib/api/queries";
 import { usePaginationInfo } from "@/hooks";
 import { BacktestStatusEnum } from "@/types/common";
-import { BacktestHistoryTableSkeleton } from "../strategy-builder";
 
 interface BacktestHistoryPanelProps {
   strategyId: string;
