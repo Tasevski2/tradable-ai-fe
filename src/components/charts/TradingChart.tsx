@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { LineType, CandleType } from "klinecharts";
+import { LineType, CandleType, dispose } from "klinecharts";
 import { KLineChartPro } from "@klinecharts/pro";
 import "@klinecharts/pro/dist/klinecharts-pro.css";
 import { useMarkets } from "@/lib/api/queries";
@@ -157,10 +157,8 @@ export function TradingChart({ strategyId }: TradingChartProps) {
   useEffect(() => {
     if (!containerRef.current || markets.length === 0) return;
 
-    // Prevent double-init (React strict mode)
-    if (chartRef.current) return;
-
     const container = containerRef.current;
+    let isMounted = true; // Track if effect is still active (handles Strict Mode)
 
     const init = async () => {
       // Load saved preferences
@@ -171,6 +169,9 @@ export function TradingChart({ strategyId }: TradingChartProps) {
       // Get price precision
       const price = await fetchLatestPrice(symbolTicker);
       const precision = calculatePricePrecision(price);
+
+      // Check if effect was cleaned up during async operations
+      if (!isMounted) return;
 
       // Create datafeed with preference persistence callback
       const datafeed = new BybitDatafeed(markets, (symbol, periodText) => {
@@ -212,6 +213,11 @@ export function TradingChart({ strategyId }: TradingChartProps) {
     init();
 
     return () => {
+      isMounted = false; // Prevent async init from completing
+      // Properly dispose of the chart (removes DOM elements)
+      if (container) {
+        dispose(container);
+      }
       datafeedRef.current?.destroy();
       datafeedRef.current = null;
       chartRef.current = null;
