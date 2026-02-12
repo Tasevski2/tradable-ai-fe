@@ -22,7 +22,7 @@ export function useRunBacktest() {
     onSuccess: (_, { strategyId }) => {
       // Invalidate backtest list/table (partial key matches all pagination)
       queryClient.invalidateQueries({
-        queryKey: ["backtests", "byStrategy", strategyId],
+        queryKey: queryKeys.backtests.byStrategyPrefix(strategyId),
       });
       // Invalidate latest backtest query
       queryClient.invalidateQueries({

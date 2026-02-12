@@ -1,4 +1,4 @@
-import { StrategyStatusEnum } from "@/types/common";
+import { StrategyStatusEnum, BacktestStatusEnum } from "@/types/common";
 import { BybitSyncStatusEnum } from "@/types/api";
 
 export interface StatusStyle {
@@ -49,4 +49,16 @@ export function getStrategyStatusStyle(status: StrategyStatusEnum): StatusStyle 
 
 export function getBybitSyncStatusStyle(status: BybitSyncStatusEnum): StatusStyle {
   return BYBIT_SYNC_STATUS_STYLES[status] ?? BYBIT_SYNC_STATUS_STYLES[BybitSyncStatusEnum.IDLE];
+}
+
+/**
+ * Get the display text for a backtest status.
+ * Shows "queued" as "Running" to avoid confusing users.
+ */
+export function getBacktestStatusDisplay(status: BacktestStatusEnum): string {
+  if (status === BacktestStatusEnum.QUEUED) {
+    return "Running";
+  }
+  // Capitalize first letter for display
+  return status.charAt(0).toUpperCase() + status.slice(1);
 }

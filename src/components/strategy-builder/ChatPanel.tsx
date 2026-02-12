@@ -8,11 +8,13 @@ import { useChatStream } from "@/lib/sse/useChatStream";
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { ChatMessage } from "./ChatMessage";
+import { ChatActionButtons } from "./ChatActionButtons";
 import { ChatInput } from "./ChatInput";
 import { Skeleton } from "@/components/ui/Skeleton";
 import type {
   ChatMessage as ChatMessageType,
   ChatMessagesResponse,
+  UserChoiceAction,
 } from "@/types/api";
 
 interface ChatPanelProps {
@@ -29,6 +31,7 @@ export function ChatPanel({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
+  const hasInitialScrollRef = useRef(false);
   const queryClient = useQueryClient();
 
   // ── Data hooks ──────────────────────────────────────────────
@@ -72,6 +75,7 @@ export function ChatPanel({
                   role: "assistant" as const,
                   content: streamingContentRef.current,
                   createdAt: new Date().toISOString(),
+                  actions: payload.actions?.length ? payload.actions : null,
                 },
               ],
             };
@@ -186,8 +190,16 @@ export function ChatPanel({
   // ── Scroll behaviour ───────────────────────────────────────
   // Auto-scroll to bottom on new messages and during streaming
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length, streamingContent]);
+    if (!hasInitialScrollRef.current && messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+      hasInitialScrollRef.current = true;
+      return;
+    }
+    // Instant scroll during active streaming to prevent bounce from rapid token updates.
+    // Smooth scroll for discrete events (new message, stream start/end).
+    const behavior = isStreaming && streamingContent ? "instant" : "smooth";
+    messagesEndRef.current?.scrollIntoView({ behavior });
+  }, [messages.length, streamingContent, isStreaming]);
 
   // Infinite scroll: observe sentinel at top of messages
   useEffect(() => {
@@ -197,7 +209,7 @@ export function ChatPanel({
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
-        if (entry?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+        if (entry?.isIntersecting && hasNextPage && !isFetchingNextPage && hasInitialScrollRef.current) {
           // Save scroll position before loading older messages
           const container = scrollContainerRef.current;
           const prevScrollHeight = container?.scrollHeight ?? 0;
@@ -219,6 +231,16 @@ export function ChatPanel({
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Determine visible action buttons (only when not streaming)
+  const lastMessage = messages[messages.length - 1];
+  const visibleActions: UserChoiceAction[] =
+    !isStreaming &&
+    lastMessage?.role === "assistant" &&
+    Array.isArray(lastMessage.actions) &&
+    lastMessage.actions.length > 0
+      ? lastMessage.actions
+      : [];
 
   const draftDiffers = draftVersion !== liveVersion;
   const isBusy = sendMessage.isPending || isStreaming;
@@ -275,6 +297,15 @@ export function ChatPanel({
                 content={streamingContent}
                 isStreaming
                 activeTools={activeTools}
+              />
+            )}
+
+            {/* Action buttons */}
+            {visibleActions.length > 0 && (
+              <ChatActionButtons
+                actions={visibleActions}
+                onActionClick={handleSendMessage}
+                disabled={isBusy}
               />
             )}
 

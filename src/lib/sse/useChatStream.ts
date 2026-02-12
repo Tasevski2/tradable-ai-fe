@@ -4,16 +4,17 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { env } from "@/lib/env";
-import type { ToolCallStatus } from "@/types/api";
+import type { ToolCallStatus, UserChoiceAction } from "@/types/api";
 
 interface ChatSSEEvent {
-  type: "token" | "tool" | "done" | "error" | "ping";
+  type: "token" | "tool" | "done" | "error" | "ping" | "reconnected";
   [key: string]: unknown;
 }
 
 interface DonePayload {
   messageId: string;
   draftUpdated: boolean;
+  actions?: UserChoiceAction[];
 }
 
 interface UseChatStreamOptions {
@@ -41,6 +42,7 @@ function handleSSEEvent(
     onTool: (name: string, status: "calling" | "completed") => void;
     onDone: (payload: DonePayload) => void;
     onError: (message: string) => void;
+    onReconnected: (bufferedContent: string) => void;
   },
 ): boolean {
   let data: ChatSSEEvent;
@@ -68,6 +70,9 @@ function handleSSEEvent(
       callbacks.onDone({
         messageId: data.messageId as string,
         draftUpdated: data.draftUpdated as boolean,
+        actions: Array.isArray(data.actions)
+          ? (data.actions as UserChoiceAction[])
+          : undefined,
       });
       return false;
     }
@@ -75,6 +80,11 @@ function handleSSEEvent(
     case "error": {
       callbacks.onError((data.message as string) || "Stream error");
       return false;
+    }
+
+    case "reconnected": {
+      callbacks.onReconnected(data.bufferedContent as string);
+      return true;
     }
 
     case "ping":
@@ -177,6 +187,9 @@ export function useChatStream(
             setIsStreaming(false);
             onDoneRef.current(payload);
           },
+          onReconnected: (bufferedContent: string) => {
+            setStreamingContent(() => bufferedContent);
+          },
           onError: (message: string) => {
             abortControllerRef.current = null;
             setIsStreaming(false);
@@ -233,8 +246,7 @@ export function useChatStream(
 
         abortControllerRef.current = null;
         setIsStreaming(false);
-        const message =
-          err instanceof Error ? err.message : "Connection lost";
+        const message = err instanceof Error ? err.message : "Connection lost";
         setStreamError(message);
         onErrorRef.current?.(message);
       }

@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { formatPnlPercent, formatDateTime } from "@/lib/utils/format";
+import { getBacktestStatusDisplay } from "@/lib/utils/status";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { BacktestStatusEnum } from "@/types/common";
 import { useStrategyBacktests } from "@/lib/api/queries";
@@ -19,6 +20,7 @@ function getStatusPillClass(status: BacktestStatusEnum): string {
     case BacktestStatusEnum.SUCCESS:
       return "pill-ok";
     case BacktestStatusEnum.RUNNING:
+    case BacktestStatusEnum.QUEUED:
       return "pill-warn";
     case BacktestStatusEnum.ERROR:
       return "pill-bad";
@@ -97,7 +99,7 @@ export function BacktestHistoryTable({
                           getStatusPillClass(backtest.status),
                         )}
                       >
-                        {backtest.status}
+                        {getBacktestStatusDisplay(backtest.status)}
                       </span>
                     </td>
                     <td>

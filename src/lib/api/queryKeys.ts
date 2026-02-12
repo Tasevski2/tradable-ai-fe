@@ -10,6 +10,7 @@ export const queryKeys = {
   },
   strategies: {
     all: ["strategies"] as const,
+    listPrefix: () => [...queryKeys.strategies.all, "list"] as const,
     list: (params?: {
       page?: number;
       limit?: number;
@@ -28,6 +29,8 @@ export const queryKeys = {
   },
   positions: {
     all: ["positions"] as const,
+    byStrategyPrefix: (strategyId: string) =>
+      [...queryKeys.positions.all, "byStrategy", strategyId] as const,
     byStrategy: (strategyId: string, page?: number, limit?: number) =>
       [
         ...queryKeys.positions.all,
@@ -38,6 +41,8 @@ export const queryKeys = {
   },
   backtests: {
     all: ["backtests"] as const,
+    byStrategyPrefix: (strategyId: string) =>
+      [...queryKeys.backtests.all, "byStrategy", strategyId] as const,
     forStrategy: (strategyId: string) =>
       [...queryKeys.backtests.all, "forStrategy", strategyId] as const,
     byStrategy: (strategyId: string, page?: number, limit?: number) =>

@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils/cn";
 import { formatTime } from "@/lib/utils/format";
+import { MarkdownContent } from "@/components/ui/MarkdownContent";
 import { Loader2 } from "lucide-react";
 import type { ChatMessageRole, ToolCallStatus } from "@/types/api";
 
@@ -53,7 +54,7 @@ export function ChatMessage({
               className="flex items-center gap-1.5 text-xs text-foreground-muted"
             >
               <Loader2 size={12} className="animate-spin" />
-              <span>{TOOL_DISPLAY_NAMES[tool.name] ?? tool.name}...</span>
+              <span>{TOOL_DISPLAY_NAMES[tool.name] ?? "Thinking"}...</span>
             </div>
           ))}
         </div>
@@ -68,8 +69,8 @@ export function ChatMessage({
           <span className="animate-bounce [animation-delay:300ms]">.</span>
         </div>
       ) : (
-        <div className="text-[13px] text-foreground/92 leading-relaxed whitespace-pre-wrap">
-          {content}
+        <div>
+          <MarkdownContent content={content} />
           {isStreaming && (
             <span className="inline-block w-[2px] h-[14px] ml-0.5 bg-foreground/70 animate-pulse align-middle" />
           )}

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils/cn";
 import { formatRelativeTime, formatValue } from "@/lib/utils/format";
+import { getBacktestStatusDisplay } from "@/lib/utils/status";
 import { useStrategyActivities } from "@/lib/api/queries";
 import {
   ActivityTypeEnum,
@@ -55,11 +56,10 @@ function getBacktestStatusPillClass(status: BacktestStatusEnum): string {
     case BacktestStatusEnum.SUCCESS:
       return "pill-ok";
     case BacktestStatusEnum.RUNNING:
+    case BacktestStatusEnum.QUEUED:
       return "pill-warn";
     case BacktestStatusEnum.ERROR:
       return "pill-bad";
-    case BacktestStatusEnum.QUEUED:
-      return "";
     default:
       return "";
   }
@@ -94,7 +94,7 @@ function BacktestActivity({ data }: { data: BacktestActivityData }) {
       </strong>
       <div className="mt-1.5">
         <span className={cn("pill", getBacktestStatusPillClass(data.status))}>
-          {data.status}
+          {getBacktestStatusDisplay(data.status)}
         </span>
       </div>
     </>

@@ -301,11 +301,16 @@ export interface RunBacktestResponse {
  */
 export type ChatMessageRole = "user" | "assistant";
 
+export interface UserChoiceAction {
+  value: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: ChatMessageRole;
   content: string;
   createdAt: string;
+  actions?: UserChoiceAction[] | null;
 }
 
 export interface ChatMessagesResponse {
@@ -322,3 +327,43 @@ export interface ToolCallStatus {
   name: string;
   status: "calling" | "completed";
 }
+
+/**
+ * SSE User Events for Real-Time Updates
+ * Events received via Server-Sent Events from /api/events/stream
+ */
+export interface PositionOpenedUserEvent {
+  type: "POSITION_OPENED";
+  strategyId: string;
+  strategyName: string;
+  symbol: string;
+  side: "Buy" | "Sell";
+  allocatedQty: string;
+  entryPrice: string;
+  positionIdx: number;
+  timestamp: number;
+}
+
+export interface PositionClosedUserEvent {
+  type: "POSITION_CLOSED";
+  strategyId: string;
+  strategyName: string;
+  symbol: string;
+  side: "Buy" | "Sell";
+  positionIdx: number;
+  timestamp: number;
+}
+
+export interface BacktestCompleteUserEvent {
+  type: "BACKTEST_COMPLETE";
+  backtestId: string;
+  strategyId: string;
+  strategyName: string;
+  status: "completed" | "failed";
+  timestamp: number;
+}
+
+export type SSEUserEvent =
+  | PositionOpenedUserEvent
+  | PositionClosedUserEvent
+  | BacktestCompleteUserEvent;

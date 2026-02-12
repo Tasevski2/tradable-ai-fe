@@ -22,7 +22,7 @@ export function useActivateStrategy() {
         queryKey: queryKeys.strategies.detail(strategyId),
       });
       queryClient.invalidateQueries({
-        queryKey: ["strategies", "list"],
+        queryKey: queryKeys.strategies.listPrefix(),
       });
     },
   });

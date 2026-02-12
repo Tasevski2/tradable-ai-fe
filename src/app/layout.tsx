@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { PrivyProvider } from "@/components/providers/PrivyProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { EventsStreamProvider } from "@/components/providers/EventsStreamProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,7 +31,10 @@ export default function RootLayout({
       >
         <ReactQueryProvider>
           <PrivyProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              <EventsStreamProvider>{children}</EventsStreamProvider>
+              <Toaster theme="dark" position="bottom-right" richColors />
+            </AuthProvider>
           </PrivyProvider>
         </ReactQueryProvider>
       </body>
