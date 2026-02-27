@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/Spinner";
 
-export default function StrategyDetailNotFound() {
+export default function StrategyBuilderNotFound() {
   const router = useRouter();
 
   useEffect(() => {
