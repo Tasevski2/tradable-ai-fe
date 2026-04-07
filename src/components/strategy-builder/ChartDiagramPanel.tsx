@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils/cn";
 import { StrategyFlowDiagram } from "@/components/strategy-flow";
 import { Modal } from "@/components/ui/Modal";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { StrategyStatusEnum } from "@/types/common";
 
 const TradingChart = dynamic(
   () => import("@/components/charts/TradingChart").then((m) => m.TradingChart),
@@ -90,13 +89,13 @@ export function ChartDiagramPanel({
           </button>
           <button
             onClick={() => {
-              setSelectedSource(StrategyStatusEnum.LIVE);
+              setSelectedSource("live");
               setActiveTab("diagram");
             }}
             disabled={liveConfigJson == null}
             className={cn(
               "pill cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed",
-              selectedSource === StrategyStatusEnum.LIVE
+              selectedSource === "live"
                 ? "pill-ok"
                 : "pill-muted",
             )}

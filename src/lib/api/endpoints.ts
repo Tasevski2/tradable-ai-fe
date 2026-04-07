@@ -1,5 +1,14 @@
 const API_BASE = "/api";
 
+function buildQueryString(params: Record<string, string | number | undefined>): string {
+  const searchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined) searchParams.set(key, String(value));
+  }
+  const qs = searchParams.toString();
+  return qs ? `?${qs}` : "";
+}
+
 export const API_ENDPOINTS = {
   USERS: {
     ME: `${API_BASE}/users/me`,
@@ -18,17 +27,12 @@ export const API_ENDPOINTS = {
     PAUSE: (id: string) => `${API_BASE}/strategies/${id}/pause`,
   },
   CHAT: {
-    MESSAGES: (strategyId: string, limit?: number, before?: string) => {
-      const params = new URLSearchParams();
-      if (limit) params.set("limit", String(limit));
-      if (before) params.set("before", before);
-      const qs = params.toString();
-      return `${API_BASE}/strategies/${strategyId}/chat/messages${qs ? `?${qs}` : ""}`;
-    },
+    MESSAGES: (strategyId: string, limit?: number, before?: string) =>
+      `${API_BASE}/strategies/${strategyId}/chat/messages${buildQueryString({ limit, before })}`,
     SEND: (strategyId: string) =>
       `${API_BASE}/strategies/${strategyId}/chat/messages`,
     STREAM: (strategyId: string, afterMessageId: string) =>
-      `${API_BASE}/strategies/${strategyId}/chat/stream?afterMessageId=${afterMessageId}`,
+      `${API_BASE}/strategies/${strategyId}/chat/stream${buildQueryString({ afterMessageId })}`,
   },
   ACCOUNTS: {
     BASE: `${API_BASE}/accounts`,
@@ -67,6 +71,6 @@ export const API_ENDPOINTS = {
   MARKETS: {
     LIST: `${API_BASE}/markets`,
     BY_STRATEGY: (strategyId: string, page = 1, limit = 10, search?: string) =>
-      `${API_BASE}/strategies/${strategyId}/markets?page=${page}&limit=${limit}${search ? `&search=${search}` : ""}`,
+      `${API_BASE}/strategies/${strategyId}/markets${buildQueryString({ page, limit, search })}`,
   },
 } as const;

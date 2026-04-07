@@ -45,6 +45,7 @@ class APIClient {
 
     const response = await fetch(`${this.baseURL}${endpoint}`, {
       ...options,
+      signal: options?.signal ?? AbortSignal.timeout(30_000),
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -57,7 +58,11 @@ class APIClient {
       throw new APIError(response.status, response.statusText, text);
     }
 
-    return response.json();
+    try {
+      return await response.json() as T;
+    } catch {
+      throw new APIError(response.status, response.statusText, "Invalid response format");
+    }
   }
 
   /**

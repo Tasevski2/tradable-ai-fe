@@ -3,10 +3,7 @@ import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { useIsAuthenticated } from "@/stores/useAuthStore";
-
-interface MarketsResponse {
-  data: string[];
-}
+import type { ApiResponse } from "@/types/api";
 
 export function useMarkets() {
   const isAuthenticated = useIsAuthenticated();
@@ -14,9 +11,10 @@ export function useMarkets() {
   return useQuery({
     queryKey: queryKeys.markets.list(),
     queryFn: async () => {
-      const response =
-        await apiClient.get<MarketsResponse>(API_ENDPOINTS.MARKETS.LIST);
-      return response;
+      const response = await apiClient.get<ApiResponse<string[]>>(
+        API_ENDPOINTS.MARKETS.LIST,
+      );
+      return response.data;
     },
     enabled: isAuthenticated,
   });

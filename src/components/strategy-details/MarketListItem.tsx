@@ -22,13 +22,15 @@ export function MarketListItem({
   badge = null,
 }: MarketListItemProps) {
   return (
-    <div
-      onClick={disabled ? undefined : onClick}
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
       className={cn(
-        "flex items-center justify-between gap-2.5 px-2.5 py-2 min-h-9 rounded-lg border border-border/40 bg-background-overlay/30 text-xs font-semibold transition-colors",
+        "flex w-full items-center justify-between gap-2.5 px-2.5 py-2 min-h-9 rounded-lg border border-border/40 bg-background-overlay/30 text-xs font-semibold transition-colors",
         disabled
           ? "text-foreground-muted/50 cursor-not-allowed"
-          : "text-foreground-muted cursor-pointer hover:bg-background-overlay/60",
+          : "text-foreground-muted hover:bg-background-overlay/60",
       )}
     >
       <div className="flex items-center gap-2.5">
@@ -62,6 +64,6 @@ export function MarketListItem({
       ) : (
         <span className="invisible pill text-[10px] px-2 py-0.5">-</span>
       )}
-    </div>
+    </button>
   );
 }

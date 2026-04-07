@@ -6,7 +6,16 @@ import { toast } from "sonner";
 import { apiClient } from "@/lib/api/client";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { env } from "@/lib/env";
+import { SSEEventEnum } from "@/types/common";
 import type { SSEUserEvent } from "@/types/api";
+import {
+  SSE_DATA_PREFIX,
+  SSE_PING_EVENT,
+  SSE_ACCEPT_HEADER,
+  ABORT_ERROR_NAME,
+  SSE_BASE_RECONNECT_DELAY_MS,
+  SSE_MAX_RECONNECT_DELAY_MS,
+} from "./constants";
 
 interface UseEventsStreamOptions {
   enabled: boolean;
@@ -33,7 +42,7 @@ export function useEventsStream({ enabled }: UseEventsStreamOptions): void {
   const handleEvent = useCallback(
     (event: SSEUserEvent) => {
       switch (event.type) {
-        case "POSITION_OPENED": {
+        case SSEEventEnum.POSITION_OPENED: {
           queryClient.invalidateQueries({
             queryKey: queryKeys.account.summary(),
           });
@@ -54,7 +63,7 @@ export function useEventsStream({ enabled }: UseEventsStreamOptions): void {
           break;
         }
 
-        case "POSITION_CLOSED": {
+        case SSEEventEnum.POSITION_CLOSED: {
           queryClient.invalidateQueries({
             queryKey: queryKeys.account.summary(),
           });
@@ -72,7 +81,7 @@ export function useEventsStream({ enabled }: UseEventsStreamOptions): void {
           break;
         }
 
-        case "BACKTEST_COMPLETE": {
+        case SSEEventEnum.BACKTEST_COMPLETE: {
           // Invalidate backtest queries
           queryClient.invalidateQueries({
             queryKey: queryKeys.backtests.detail(
@@ -136,7 +145,7 @@ export function useEventsStream({ enabled }: UseEventsStreamOptions): void {
       const response = await fetch(url, {
         method: "GET",
         headers: {
-          Accept: "text/event-stream",
+          Accept: SSE_ACCEPT_HEADER,
           Authorization: `Bearer ${token}`,
         },
         signal: abortController.signal,
@@ -181,8 +190,8 @@ export function useEventsStream({ enabled }: UseEventsStreamOptions): void {
           // Extract the data: line(s) from the SSE event
           const dataLines = event
             .split("\n")
-            .filter((line) => line.startsWith("data:"))
-            .map((line) => line.slice(5).trim());
+            .filter((line) => line.startsWith(SSE_DATA_PREFIX))
+            .map((line) => line.slice(SSE_DATA_PREFIX.length).trim());
 
           if (dataLines.length === 0) continue;
 
@@ -193,16 +202,16 @@ export function useEventsStream({ enabled }: UseEventsStreamOptions): void {
           try {
             const data = JSON.parse(raw);
             // Skip ping keep-alive events
-            if (data.type === "ping") continue;
+            if (data.type === SSE_PING_EVENT) continue;
             handleEvent(data as SSEUserEvent);
-          } catch {
-            // Ignore parse errors (could be malformed events)
+          } catch (err) {
+            console.warn("[EventsStream] Failed to parse SSE event:", raw, err);
           }
         }
       }
     } catch (err) {
       // AbortError is expected when we abort the connection
-      if (err instanceof DOMException && err.name === "AbortError") {
+      if (err instanceof DOMException && err.name === ABORT_ERROR_NAME) {
         return;
       }
 
@@ -221,10 +230,10 @@ export function useEventsStream({ enabled }: UseEventsStreamOptions): void {
       if (!enabled) return;
 
       // Exponential backoff: 1s, 2s, 4s, 8s, max 30s
-      const baseDelay = env.NEXT_PUBLIC_SSE_RECONNECT_DELAY || 1000;
+      const baseDelay = env.NEXT_PUBLIC_SSE_RECONNECT_DELAY ?? SSE_BASE_RECONNECT_DELAY_MS;
       const delay = Math.min(
         baseDelay * Math.pow(2, reconnectAttemptRef.current),
-        30000,
+        SSE_MAX_RECONNECT_DELAY_MS,
       );
       reconnectAttemptRef.current++;
 

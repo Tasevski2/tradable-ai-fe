@@ -6,14 +6,14 @@ import { useCloseAllPositions } from "@/lib/api/mutations";
 import { useStrategyPositions } from "@/lib/api/queries";
 
 interface StrategyControlsPanelProps {
-  strategyId: string;
+  strategyId?: string;
   isLoading?: boolean;
 }
 
 export function StrategyControlsPanel({
   strategyId,
   isLoading = false,
-}: Partial<StrategyControlsPanelProps>) {
+}: StrategyControlsPanelProps) {
   const { data: positionsData } = useStrategyPositions(strategyId ?? "", {
     enabled: !!strategyId && !isLoading,
   });

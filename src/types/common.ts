@@ -22,6 +22,11 @@ export enum SSEEventEnum {
   BACKTEST_COMPLETE = "BACKTEST_COMPLETE",
 }
 
+export enum ToolCallStatusEnum {
+  CALLING = "calling",
+  COMPLETED = "completed",
+}
+
 export enum PositionIdx {
   ONE_WAY = 0,
   LONG = 1,

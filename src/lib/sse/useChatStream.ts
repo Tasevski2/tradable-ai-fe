@@ -1,15 +1,68 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { z } from "zod";
+import { ToolCallStatusEnum } from "@/types/common";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { env } from "@/lib/env";
 import type { ToolCallStatus, UserChoiceAction } from "@/types/api";
+import {
+  SSE_DATA_PREFIX,
+  SSE_ACCEPT_HEADER,
+  ABORT_ERROR_NAME,
+} from "./constants";
 
-interface ChatSSEEvent {
-  type: "token" | "tool" | "done" | "error" | "ping" | "reconnected";
-  [key: string]: unknown;
-}
+// ── SSE event schemas ──────────────────────────────────────────────────────────
+
+const userChoiceActionSchema = z.object({ value: z.string() });
+
+const tokenEventSchema = z.object({
+  type: z.literal("token"),
+  delta: z.string(),
+});
+
+const toolEventSchema = z.object({
+  type: z.literal("tool"),
+  name: z.string(),
+  status: z.nativeEnum(ToolCallStatusEnum),
+});
+
+const doneEventSchema = z.object({
+  type: z.literal("done"),
+  messageId: z.string(),
+  draftUpdated: z.boolean(),
+  actions: z.array(userChoiceActionSchema).optional(),
+});
+
+const errorEventSchema = z.object({
+  type: z.literal("error"),
+  message: z.string().optional(),
+});
+
+const reconnectedEventSchema = z.object({
+  type: z.literal("reconnected"),
+  bufferedContent: z.string(),
+});
+
+const pingEventSchema = z.object({ type: z.literal("ping") });
+
+/**
+ * Discriminated union covering every event type the chat SSE stream can emit.
+ * Unknown event types are silently ignored.
+ */
+const chatSSEEventSchema = z.discriminatedUnion("type", [
+  tokenEventSchema,
+  toolEventSchema,
+  doneEventSchema,
+  errorEventSchema,
+  reconnectedEventSchema,
+  pingEventSchema,
+]);
+
+type ChatSSEEvent = z.infer<typeof chatSSEEventSchema>;
+
+// ── Public API ─────────────────────────────────────────────────────────────────
 
 interface DonePayload {
   messageId: string;
@@ -31,69 +84,70 @@ interface UseChatStreamReturn {
   stopStream: () => void;
 }
 
+// ── SSE event dispatcher ───────────────────────────────────────────────────────
+
 /**
- * Process a single SSE event data string.
- * Returns false if the stream should stop (done/error), true to continue.
+ * Parse and dispatch a single raw SSE data payload.
+ * Returns `false` when the stream should stop (done / error event), `true` to
+ * continue reading.
  */
 function handleSSEEvent(
   raw: string,
   callbacks: {
     onToken: (delta: string) => void;
-    onTool: (name: string, status: "calling" | "completed") => void;
+    onTool: (name: string, status: ToolCallStatusEnum) => void;
     onDone: (payload: DonePayload) => void;
     onError: (message: string) => void;
     onReconnected: (bufferedContent: string) => void;
   },
 ): boolean {
-  let data: ChatSSEEvent;
+  let json: unknown;
   try {
-    data = JSON.parse(raw) as ChatSSEEvent;
-  } catch {
+    json = JSON.parse(raw);
+  } catch (err) {
+    console.warn("[ChatStream] Failed to parse SSE event:", raw, err);
     return true;
   }
 
-  switch (data.type) {
-    case "token": {
-      callbacks.onToken(data.delta as string);
-      return true;
-    }
+  const result = chatSSEEventSchema.safeParse(json);
+  if (!result.success) {
+    // Unknown or structurally invalid event — skip silently
+    return true;
+  }
 
-    case "tool": {
-      callbacks.onTool(
-        data.name as string,
-        data.status as "calling" | "completed",
-      );
-      return true;
-    }
+  const event: ChatSSEEvent = result.data;
 
-    case "done": {
+  switch (event.type) {
+    case "token":
+      callbacks.onToken(event.delta);
+      return true;
+
+    case "tool":
+      callbacks.onTool(event.name, event.status);
+      return true;
+
+    case "done":
       callbacks.onDone({
-        messageId: data.messageId as string,
-        draftUpdated: data.draftUpdated as boolean,
-        actions: Array.isArray(data.actions)
-          ? (data.actions as UserChoiceAction[])
-          : undefined,
+        messageId: event.messageId,
+        draftUpdated: event.draftUpdated,
+        actions: event.actions as UserChoiceAction[] | undefined,
       });
       return false;
-    }
 
-    case "error": {
-      callbacks.onError((data.message as string) || "Stream error");
+    case "error":
+      callbacks.onError(event.message ?? "Stream error");
       return false;
-    }
 
-    case "reconnected": {
-      callbacks.onReconnected(data.bufferedContent as string);
+    case "reconnected":
+      callbacks.onReconnected(event.bufferedContent);
       return true;
-    }
 
     case "ping":
       return true;
-
-    default:
-      return true;
   }
 }
+
+// ── Hook ───────────────────────────────────────────────────────────────────────
 
 export function useChatStream(
   strategyId: string,
@@ -105,30 +159,24 @@ export function useChatStream(
   const [streamError, setStreamError] = useState<string | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  // Keep callbacks in refs so closures inside the async loop always see the
+  // latest version without needing to be listed as effect dependencies.
   const onDoneRef = useRef(options.onDone);
   const onErrorRef = useRef(options.onError);
-
-  // Keep callback refs up to date
   onDoneRef.current = options.onDone;
   onErrorRef.current = options.onError;
 
   const stopStream = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
     setIsStreaming(false);
   }, []);
 
   const startStream = useCallback(
     async (afterMessageId: string) => {
-      // Abort any existing connection
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-        abortControllerRef.current = null;
-      }
+      // Cancel any in-flight stream before starting a new one
+      abortControllerRef.current?.abort();
 
-      // Reset state
       setStreamingContent("");
       setActiveTools([]);
       setStreamError(null);
@@ -148,7 +196,7 @@ export function useChatStream(
         const response = await fetch(url, {
           method: "GET",
           headers: {
-            Accept: "text/event-stream",
+            Accept: SSE_ACCEPT_HEADER,
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           signal: abortController.signal,
@@ -171,7 +219,7 @@ export function useChatStream(
           onToken: (delta: string) => {
             setStreamingContent((prev) => prev + delta);
           },
-          onTool: (name: string, status: "calling" | "completed") => {
+          onTool: (name: string, status: ToolCallStatusEnum) => {
             setActiveTools((prev) => {
               const existing = prev.find((t) => t.name === name);
               if (existing) {
@@ -198,12 +246,11 @@ export function useChatStream(
           },
         };
 
-        // Read the stream
         while (true) {
           const { done, value } = await reader.read();
 
           if (done) {
-            // Stream ended without a done event — treat as connection lost
+            // Stream ended without a `done` event — treat as lost connection
             if (abortControllerRef.current) {
               abortControllerRef.current = null;
               setIsStreaming(false);
@@ -215,33 +262,31 @@ export function useChatStream(
 
           buffer += decoder.decode(value, { stream: true });
 
-          // SSE events are separated by double newlines
+          // SSE events are delimited by double newlines
           const events = buffer.split("\n\n");
-          // Keep the last chunk (may be incomplete)
-          buffer = events.pop() ?? "";
+          buffer = events.pop() ?? ""; // keep the trailing incomplete chunk
 
           for (const event of events) {
-            // Extract the data: line(s) from the SSE event
             const dataLines = event
               .split("\n")
-              .filter((line) => line.startsWith("data:"))
-              .map((line) => line.slice(5).trim());
+              .filter((line) => line.startsWith(SSE_DATA_PREFIX))
+              .map((line) => line.slice(SSE_DATA_PREFIX.length).trim());
 
             if (dataLines.length === 0) continue;
 
-            const raw = dataLines.join("\n");
-            const shouldContinue = handleSSEEvent(raw, eventCallbacks);
+            const shouldContinue = handleSSEEvent(
+              dataLines.join("\n"),
+              eventCallbacks,
+            );
             if (!shouldContinue) {
-              // done or error — abort the reader
               reader.cancel();
               return;
             }
           }
         }
       } catch (err) {
-        // AbortError is expected when stopStream() is called
-        if (err instanceof DOMException && err.name === "AbortError") {
-          return;
+        if (err instanceof DOMException && err.name === ABORT_ERROR_NAME) {
+          return; // Expected when stopStream() is called — not an error
         }
 
         abortControllerRef.current = null;
@@ -254,13 +299,11 @@ export function useChatStream(
     [strategyId],
   );
 
-  // Cleanup on unmount
+  // Abort the stream on unmount to avoid state updates on unmounted components
   useEffect(() => {
     return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-        abortControllerRef.current = null;
-      }
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
     };
   }, []);
 

@@ -152,7 +152,7 @@ export function TradingChart({ strategyId }: TradingChartProps) {
   const datafeedRef = useRef<BybitDatafeed | null>(null);
   const { data: marketsData, isLoading: marketsLoading } = useMarkets();
 
-  const markets = marketsData?.data ?? [];
+  const markets = marketsData ?? [];
 
   useEffect(() => {
     if (!containerRef.current || markets.length === 0) return;

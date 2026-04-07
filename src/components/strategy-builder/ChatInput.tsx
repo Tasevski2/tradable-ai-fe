@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect, type KeyboardEvent } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { Send } from "lucide-react";
 import { Spinner } from "@/components/ui/Spinner";
+import { useAutoResizeTextarea } from "@/hooks";
 
-const MAX_HEIGHT = 160;
+const MAX_TEXTAREA_HEIGHT_PX = 160;
 
 interface ChatInputProps {
   onSubmit: (message: string) => void;
@@ -19,24 +20,8 @@ export function ChatInput({
   placeholder = "Message TradableAI...",
   disabled = false,
 }: ChatInputProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [message, setMessage] = useState("");
-
-  // Auto-resize textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      const scrollHeight = textareaRef.current.scrollHeight;
-
-      if (scrollHeight > MAX_HEIGHT) {
-        textareaRef.current.style.height = `${MAX_HEIGHT}px`;
-        textareaRef.current.style.overflowY = "auto";
-      } else {
-        textareaRef.current.style.height = `${scrollHeight}px`;
-        textareaRef.current.style.overflowY = "hidden";
-      }
-    }
-  }, [message]);
+  const textareaRef = useAutoResizeTextarea(message, MAX_TEXTAREA_HEIGHT_PX);
 
   const handleSubmit = () => {
     const trimmedMessage = message.trim();

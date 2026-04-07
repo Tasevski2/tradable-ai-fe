@@ -7,6 +7,7 @@ import {
   ActivityTypeEnum,
   OrderStatus,
   OrderType,
+  ToolCallStatusEnum,
 } from "./common";
 
 export interface ApiResponse<T> {
@@ -325,7 +326,7 @@ export interface SendMessageResponse {
 
 export interface ToolCallStatus {
   name: string;
-  status: "calling" | "completed";
+  status: ToolCallStatusEnum;
 }
 
 /**
@@ -337,7 +338,7 @@ export interface PositionOpenedUserEvent {
   strategyId: string;
   strategyName: string;
   symbol: string;
-  side: "Buy" | "Sell";
+  side: OrderSideEnum;
   allocatedQty: string;
   entryPrice: string;
   positionIdx: number;
@@ -349,7 +350,7 @@ export interface PositionClosedUserEvent {
   strategyId: string;
   strategyName: string;
   symbol: string;
-  side: "Buy" | "Sell";
+  side: OrderSideEnum;
   positionIdx: number;
   timestamp: number;
 }

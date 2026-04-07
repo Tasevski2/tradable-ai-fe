@@ -1,14 +1,13 @@
 "use client";
 
-import { useRef, useEffect, useCallback } from "react";
-import { Loader2 } from "lucide-react";
+import { useRef, useCallback, useEffect } from "react";
 import { useChatMessages } from "@/lib/api/queries";
 import { useSendChatMessage } from "@/lib/api/mutations";
 import { useChatStream } from "@/lib/sse/useChatStream";
+import { useChatScroll } from "@/hooks";
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/api/queryKeys";
-import { ChatMessage } from "./ChatMessage";
-import { ChatActionButtons } from "./ChatActionButtons";
+import { ChatMessages } from "./ChatMessages";
 import { ChatInput } from "./ChatInput";
 import { Skeleton } from "@/components/ui/Skeleton";
 import type {
@@ -28,10 +27,6 @@ export function ChatPanel({
   draftVersion,
   liveVersion,
 }: ChatPanelProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
-  const hasInitialScrollRef = useRef(false);
   const queryClient = useQueryClient();
 
   // ── Data hooks ──────────────────────────────────────────────
@@ -40,14 +35,15 @@ export function ChatPanel({
 
   const sendMessage = useSendChatMessage();
 
-  // Flatten pages: pages are [most recent, older, ...], each page sorted oldest→newest
-  // Reverse page order so oldest messages are first (top of chat)
+  // Flatten pages: pages are [most recent, older, ...], each page sorted
+  // oldest → newest. Reverse so the oldest messages appear at the top.
   const messages: ChatMessageType[] = data?.pages
     ? [...data.pages].reverse().flatMap((page) => page.data)
     : [];
 
   // ── Streaming ───────────────────────────────────────────────
-  // streamingContentRef is needed so the onDone callback always reads the latest value
+  // Keep a ref so the onDone callback always reads the finalized content
+  // without the closure going stale.
   const streamingContentRef = useRef("");
 
   const {
@@ -58,7 +54,6 @@ export function ChatPanel({
     startStream,
   } = useChatStream(strategyId, {
     onDone: (payload) => {
-      // Add finalized assistant message to the query cache
       queryClient.setQueryData<InfiniteData<ChatMessagesResponse>>(
         queryKeys.chat.messages(strategyId),
         (old) => {
@@ -84,7 +79,6 @@ export function ChatPanel({
         },
       );
 
-      // Refetch strategy if the draft was updated
       if (payload.draftUpdated) {
         queryClient.invalidateQueries({
           queryKey: queryKeys.strategies.detail(strategyId),
@@ -93,26 +87,43 @@ export function ChatPanel({
     },
   });
 
-  // Keep ref in sync with latest streaming content
+  // Keep ref in sync with the latest streaming content
   streamingContentRef.current = streamingContent;
 
-  // ── Auto-resume if last message is from user ──────────────
+  // ── Auto-resume if last message is from the user ───────────
   const hasResumedRef = useRef(false);
+  const lastMessage = messages[messages.length - 1];
+  const lastMessageId = lastMessage?.id;
+  const lastMessageRole = lastMessage?.role;
 
   useEffect(() => {
-    if (isLoading || hasResumedRef.current || isStreaming) return;
-
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage?.role === "user" && !lastMessage.id.startsWith("temp-")) {
+    if (
+      !isLoading &&
+      !hasResumedRef.current &&
+      !isStreaming &&
+      lastMessageRole === "user" &&
+      lastMessageId &&
+      !lastMessageId.startsWith("temp-")
+    ) {
       hasResumedRef.current = true;
-      startStream(lastMessage.id);
+      startStream(lastMessageId);
     }
-  }, [isLoading, messages, isStreaming, startStream]);
+  }, [isLoading, isStreaming, lastMessageId, lastMessageRole, startStream]);
 
-  // ── Send flow ───────────────────────────────────────────────
+  // ── Scroll behaviour ────────────────────────────────────────
+  const { messagesEndRef, scrollContainerRef, loadMoreSentinelRef } =
+    useChatScroll({
+      messageCount: messages.length,
+      streamingContent,
+      isStreaming,
+      hasNextPage,
+      isFetchingNextPage,
+      fetchNextPage,
+    });
+
+  // ── Send message ────────────────────────────────────────────
   const handleSendMessage = useCallback(
     (content: string) => {
-      // Optimistically add user message to the cache
       const tempId = `temp-${Date.now()}`;
       const userMessage: ChatMessageType = {
         id: tempId,
@@ -121,6 +132,7 @@ export function ChatPanel({
         createdAt: new Date().toISOString(),
       };
 
+      // Optimistically add the message so the UI updates immediately
       queryClient.setQueryData<InfiniteData<ChatMessagesResponse>>(
         queryKeys.chat.messages(strategyId),
         (old) => {
@@ -133,51 +145,50 @@ export function ChatPanel({
           const newPages = [...old.pages];
           const firstPage = newPages[0];
           if (firstPage) {
-            newPages[0] = {
-              ...firstPage,
-              data: [...firstPage.data, userMessage],
-            };
+            newPages[0] = { ...firstPage, data: [...firstPage.data, userMessage] };
           }
           return { ...old, pages: newPages };
         },
       );
 
-      // POST to backend
       sendMessage.mutate(
         { strategyId, message: content },
         {
           onSuccess: (response) => {
-            // Replace temp id with real one
+            // Replace the temp id with the real server-assigned id
             queryClient.setQueryData<InfiniteData<ChatMessagesResponse>>(
               queryKeys.chat.messages(strategyId),
               (old) => {
                 if (!old) return old;
-                const newPages = old.pages.map((page) => ({
-                  ...page,
-                  data: page.data.map((msg) =>
-                    msg.id === tempId
-                      ? { ...msg, id: response.messageId }
-                      : msg,
-                  ),
-                }));
-                return { ...old, pages: newPages };
+                return {
+                  ...old,
+                  pages: old.pages.map((page) => ({
+                    ...page,
+                    data: page.data.map((msg) =>
+                      msg.id === tempId
+                        ? { ...msg, id: response.messageId }
+                        : msg,
+                    ),
+                  })),
+                };
               },
             );
 
-            // Start SSE stream for assistant response
             startStream(response.messageId);
           },
           onError: () => {
-            // Remove optimistic message on error
+            // Roll back the optimistic message on failure
             queryClient.setQueryData<InfiniteData<ChatMessagesResponse>>(
               queryKeys.chat.messages(strategyId),
               (old) => {
                 if (!old) return old;
-                const newPages = old.pages.map((page) => ({
-                  ...page,
-                  data: page.data.filter((msg) => msg.id !== tempId),
-                }));
-                return { ...old, pages: newPages };
+                return {
+                  ...old,
+                  pages: old.pages.map((page) => ({
+                    ...page,
+                    data: page.data.filter((msg) => msg.id !== tempId),
+                  })),
+                };
               },
             );
           },
@@ -187,53 +198,7 @@ export function ChatPanel({
     [queryClient, strategyId, sendMessage, startStream],
   );
 
-  // ── Scroll behaviour ───────────────────────────────────────
-  // Auto-scroll to bottom on new messages and during streaming
-  useEffect(() => {
-    if (!hasInitialScrollRef.current && messages.length > 0) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
-      hasInitialScrollRef.current = true;
-      return;
-    }
-    // Instant scroll during active streaming to prevent bounce from rapid token updates.
-    // Smooth scroll for discrete events (new message, stream start/end).
-    const behavior = isStreaming && streamingContent ? "instant" : "smooth";
-    messagesEndRef.current?.scrollIntoView({ behavior });
-  }, [messages.length, streamingContent, isStreaming]);
-
-  // Infinite scroll: observe sentinel at top of messages
-  useEffect(() => {
-    const sentinel = loadMoreSentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (entry?.isIntersecting && hasNextPage && !isFetchingNextPage && hasInitialScrollRef.current) {
-          // Save scroll position before loading older messages
-          const container = scrollContainerRef.current;
-          const prevScrollHeight = container?.scrollHeight ?? 0;
-
-          fetchNextPage().then(() => {
-            // Restore scroll position so it doesn't jump
-            requestAnimationFrame(() => {
-              if (container) {
-                const newScrollHeight = container.scrollHeight;
-                container.scrollTop += newScrollHeight - prevScrollHeight;
-              }
-            });
-          });
-        }
-      },
-      { root: scrollContainerRef.current, threshold: 0.1 },
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-  // Determine visible action buttons (only when not streaming)
-  const lastMessage = messages[messages.length - 1];
+  // ── Derived state ───────────────────────────────────────────
   const visibleActions: UserChoiceAction[] =
     !isStreaming &&
     lastMessage?.role === "assistant" &&
@@ -261,67 +226,23 @@ export function ChatPanel({
         ref={scrollContainerRef}
         className="flex-1 min-h-0 overflow-y-auto p-3.5 flex flex-col gap-3"
       >
-        {isLoading ? (
-          <ChatPanelMessagesSkeleton />
-        ) : messages.length === 0 && !isStreaming ? (
-          <div className="flex-1 flex items-center justify-center text-foreground-muted text-sm">
-            Start a conversation to build your strategy
-          </div>
-        ) : (
-          <>
-            {/* Sentinel for infinite scroll (load older messages) */}
-            <div ref={loadMoreSentinelRef} className="h-1 shrink-0" />
-            {isFetchingNextPage && (
-              <div className="flex justify-center py-2">
-                <Loader2
-                  size={16}
-                  className="animate-spin text-foreground-muted"
-                />
-              </div>
-            )}
-
-            {/* Cached messages */}
-            {messages.map((msg) => (
-              <ChatMessage
-                key={msg.id}
-                role={msg.role}
-                content={msg.content}
-                createdAt={msg.createdAt}
-              />
-            ))}
-
-            {/* Streaming assistant message */}
-            {isStreaming && (
-              <ChatMessage
-                role="assistant"
-                content={streamingContent}
-                isStreaming
-                activeTools={activeTools}
-              />
-            )}
-
-            {/* Action buttons */}
-            {visibleActions.length > 0 && (
-              <ChatActionButtons
-                actions={visibleActions}
-                onActionClick={handleSendMessage}
-                disabled={isBusy}
-              />
-            )}
-
-            {/* Stream error */}
-            {streamError && (
-              <div className="text-xs text-bearish bg-bearish/10 border border-bearish/20 rounded-lg px-3 py-2">
-                {streamError}
-              </div>
-            )}
-
-            <div ref={messagesEndRef} />
-          </>
-        )}
+        <ChatMessages
+          isLoading={isLoading}
+          messages={messages}
+          isStreaming={isStreaming}
+          streamingContent={streamingContent}
+          activeTools={activeTools}
+          streamError={streamError}
+          visibleActions={visibleActions}
+          onActionClick={handleSendMessage}
+          isBusy={isBusy}
+          isFetchingNextPage={isFetchingNextPage}
+          messagesEndRef={messagesEndRef}
+          loadMoreSentinelRef={loadMoreSentinelRef}
+        />
       </div>
 
-      {/* Input area */}
+      {/* Input */}
       <div className="p-2">
         <ChatInput
           onSubmit={handleSendMessage}
@@ -333,22 +254,6 @@ export function ChatPanel({
   );
 }
 
-function ChatPanelMessagesSkeleton() {
-  return (
-    <>
-      <div className="mr-auto max-w-[80%]">
-        <Skeleton className="h-20 w-64 rounded-2xl bg-background-overlay" />
-      </div>
-      <div className="ml-auto max-w-[80%]">
-        <Skeleton className="h-14 w-48 rounded-2xl bg-background-overlay" />
-      </div>
-      <div className="mr-auto max-w-[80%]">
-        <Skeleton className="h-24 w-72 rounded-2xl bg-background-overlay" />
-      </div>
-    </>
-  );
-}
-
 export function ChatPanelSkeleton() {
   return (
     <div className="panel flex flex-col h-full">
@@ -356,7 +261,9 @@ export function ChatPanelSkeleton() {
         <Skeleton className="h-4 w-20 bg-background-overlay" />
       </div>
       <div className="flex-1 p-3.5">
-        <ChatPanelMessagesSkeleton />
+        <div className="mr-auto max-w-[80%]">
+          <Skeleton className="h-20 w-64 rounded-2xl bg-background-overlay" />
+        </div>
       </div>
       <div className="p-3 border-t border-border">
         <Skeleton className="h-11 w-full rounded-xl bg-background-overlay" />

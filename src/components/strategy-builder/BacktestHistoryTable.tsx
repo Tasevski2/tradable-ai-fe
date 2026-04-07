@@ -1,32 +1,22 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { formatPnlPercent, formatDateTime } from "@/lib/utils/format";
-import { getBacktestStatusDisplay } from "@/lib/utils/status";
+import {
+  getBacktestStatusDisplay,
+  getBacktestStatusPillClass,
+} from "@/lib/utils/status";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { PaginationControls } from "@/components/ui/PaginationControls";
 import { BacktestStatusEnum } from "@/types/common";
 import { useStrategyBacktests } from "@/lib/api/queries";
+import { usePaginationInfo } from "@/hooks";
 import { useState } from "react";
 
 interface BacktestHistoryTableProps {
   strategyId: string;
   selectedId?: string;
   onViewDetails: (backtestId: string) => void;
-}
-
-function getStatusPillClass(status: BacktestStatusEnum): string {
-  switch (status) {
-    case BacktestStatusEnum.SUCCESS:
-      return "pill-ok";
-    case BacktestStatusEnum.RUNNING:
-    case BacktestStatusEnum.QUEUED:
-      return "pill-warn";
-    case BacktestStatusEnum.ERROR:
-      return "pill-bad";
-    default:
-      return "";
-  }
 }
 
 export function BacktestHistoryTable({
@@ -40,16 +30,14 @@ export function BacktestHistoryTable({
     limit: 10,
   });
   const backtests = data?.data ?? [];
-  const pagination = data?.pagination ?? {
-    currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
-    itemsPerPage: 10,
-    hasNextPage: false,
-    hasPreviousPage: false,
-  };
-
-  const { currentPage, totalPages, hasNextPage, hasPreviousPage } = pagination;
+  const {
+    startItem,
+    endItem,
+    totalItems,
+    totalPages,
+    hasNextPage,
+    hasPreviousPage,
+  } = usePaginationInfo(data?.pagination);
 
   return (
     <div className="flex flex-col border border-border/40 rounded-xl overflow-hidden bg-black/15">
@@ -96,7 +84,7 @@ export function BacktestHistoryTable({
                       <span
                         className={cn(
                           "pill",
-                          getStatusPillClass(backtest.status),
+                          getBacktestStatusPillClass(backtest.status),
                         )}
                       >
                         {getBacktestStatusDisplay(backtest.status)}
@@ -137,37 +125,23 @@ export function BacktestHistoryTable({
         </table>
       </div>
 
-      {/* Pagination footer */}
-      {backtests.length > 0 && (
-        <div className="flex items-center justify-between px-3.5 py-2.5 border-t border-border bg-background/35">
-          <span className="text-xs text-foreground-subtle">
-            Page {currentPage} of {totalPages}
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPage(currentPage - 1)}
-              disabled={!hasPreviousPage}
-              className="btn-secondary px-2.5 py-1 text-xs rounded-lg flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft size={12} />
-              Previous
-            </button>
-            <button
-              onClick={() => setPage(currentPage + 1)}
-              disabled={!hasNextPage}
-              className="btn-secondary px-2.5 py-1 text-xs rounded-lg flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-              <ChevronRight size={12} />
-            </button>
-          </div>
-        </div>
+      {totalItems > 0 && (
+        <PaginationControls
+          startItem={startItem}
+          endItem={endItem}
+          totalItems={totalItems}
+          hasPreviousPage={hasPreviousPage}
+          hasNextPage={hasNextPage}
+          onPrevious={() => setPage((p) => Math.max(1, p - 1))}
+          onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+          className="px-3.5 py-2.5 border-t border-border bg-background/35"
+        />
       )}
     </div>
   );
 }
 
-function BacktestHistoryTableBodySkeleton() {
+export function BacktestHistoryTableBodySkeleton() {
   return (
     <tbody>
       {[...Array(5)].map((_, i) => (

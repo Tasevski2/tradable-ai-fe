@@ -1,7 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type { ApiResponse, ClosePositionResponse } from "@/types/api";
+import { getErrorMessage } from "@/lib/utils/errors";
 
 interface ClosePositionParams {
   strategyId: string;
@@ -17,6 +19,11 @@ export function useClosePosition() {
       );
       return response.data;
     },
-    // No query invalidation for now - will be added later
+    onSuccess: () => {
+      toast.success("Close order submitted");
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Failed to close position"));
+    },
   });
 }

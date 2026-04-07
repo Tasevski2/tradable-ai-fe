@@ -1,39 +1,25 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Send } from "lucide-react";
 import { useCreateStrategyWithPrompt } from "@/lib/api/mutations";
 import { Spinner } from "@/components/ui/Spinner";
 import { getErrorMessage } from "@/lib/utils/errors";
+import { useAutoResizeTextarea } from "@/hooks";
 
 const MAX_HEIGHT = 360;
 
 export function PromptInput() {
   const router = useRouter();
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [prompt, setPrompt] = useState("");
+  const textareaRef = useAutoResizeTextarea(prompt, MAX_HEIGHT);
 
   const createStrategyMutation = useCreateStrategyWithPrompt();
 
   const isLoading = createStrategyMutation.isPending;
   const error = createStrategyMutation.error;
   const errorMessage = error ? getErrorMessage(error, "") : null;
-
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      const scrollHeight = textareaRef.current.scrollHeight;
-
-      if (scrollHeight > MAX_HEIGHT) {
-        textareaRef.current.style.height = `${MAX_HEIGHT}px`;
-        textareaRef.current.style.overflowY = "auto";
-      } else {
-        textareaRef.current.style.height = `${scrollHeight}px`;
-        textareaRef.current.style.overflowY = "hidden";
-      }
-    }
-  }, [prompt]);
 
   const handleSubmit = () => {
     const trimmedPrompt = prompt.trim();
@@ -70,7 +56,7 @@ export function PromptInput() {
           placeholder="Describe your trading strategy..."
           disabled={isLoading}
           rows={1}
-          className="w-full min-h-14 pt-4 px-5 text-foreground placeholder:text-foreground-muted focus:outline-none  transition-all resize-none disabled:opacity-50"
+          className="w-full min-h-14 pt-4 px-5 text-foreground placeholder:text-foreground-muted focus:outline-none transition-all resize-none disabled:opacity-50"
         />
 
         <button

@@ -6,36 +6,14 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils/cn";
 import { useStrategy, useStrategyMarkets } from "@/lib/api/queries";
 import { getTimeframeLabel } from "@/lib/utils/timeframe";
+import {
+  getStrategyStatusDotClass,
+  getStrategyStatusLabel,
+} from "@/lib/utils/status";
 import { MarketsListModal } from "./MarketsListModal";
 
 interface StrategySummaryProps {
   strategyId: string;
-}
-
-function getStatusDotClass(status: StrategyStatusEnum): string {
-  switch (status) {
-    case StrategyStatusEnum.LIVE:
-      return "";
-    case StrategyStatusEnum.PAUSED:
-      return "paused";
-    case StrategyStatusEnum.NOT_CONFIGURED:
-      return "error";
-    default:
-      return "";
-  }
-}
-
-function getStatusLabel(status: StrategyStatusEnum): string {
-  switch (status) {
-    case StrategyStatusEnum.LIVE:
-      return "Live";
-    case StrategyStatusEnum.PAUSED:
-      return "Paused";
-    case StrategyStatusEnum.NOT_CONFIGURED:
-      return "Not Configured";
-    default:
-      return "Unknown";
-  }
 }
 
 export function StrategySummary({ strategyId }: StrategySummaryProps) {
@@ -73,10 +51,10 @@ export function StrategySummary({ strategyId }: StrategySummaryProps) {
                 <span
                   className={cn(
                     "badge-dot",
-                    getStatusDotClass(strategy.status),
+                    getStrategyStatusDotClass(strategy.status),
                   )}
                 />
-                {getStatusLabel(strategy.status)}
+                {getStrategyStatusLabel(strategy.status)}
               </span>
               <span className="badge">
                 Timeframe: {getTimeframeLabel(strategy.timeframe)}

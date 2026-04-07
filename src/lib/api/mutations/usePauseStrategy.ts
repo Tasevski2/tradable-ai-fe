@@ -1,7 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { queryKeys } from "@/lib/api/queryKeys";
+import { getErrorMessage } from "@/lib/utils/errors";
 
 interface SuccessResponse {
   success: boolean;
@@ -24,6 +26,10 @@ export function usePauseStrategy() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.strategies.listPrefix(),
       });
+      toast.success("Strategy paused");
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Failed to pause strategy"));
     },
   });
 }

@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import { notFound } from "next/navigation";
 import { useStrategy } from "@/lib/api/queries";
-import { APIError } from "@/lib/api/client";
+import { is404Error } from "@/lib/utils/errors";
 import {
   StrategyHeader,
   StrategyHeaderSkeleton,
@@ -39,12 +39,12 @@ export default function StrategyDetailPage({
   const { data: strategy, isLoading, error } = useStrategy(strategyId);
 
   // Handle 404 error
-  if (error instanceof APIError && error.status === 404) {
+  if (is404Error(error)) {
     notFound();
   }
 
   // Handle other errors
-  if (error && !(error instanceof APIError && error.status === 404)) {
+  if (error && !is404Error(error)) {
     return (
       <div className="p-8">
         <div className="text-sm text-bearish bg-bearish/10 border border-bearish/20 rounded-lg px-4 py-3">

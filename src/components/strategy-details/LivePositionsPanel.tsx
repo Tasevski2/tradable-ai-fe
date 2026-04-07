@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { PaginationControls } from "@/components/ui/PaginationControls";
 import { useStrategyPositions } from "@/lib/api/queries";
 import { useClosePosition } from "@/lib/api/mutations";
 import { usePaginationInfo } from "@/hooks";
 import { formatValue } from "@/lib/utils/format";
-import { PositionIdx } from "@/types/common";
+import { getPositionSide, getPositionSideClass } from "@/lib/utils/position";
 import { StrategyOrdersModal } from "./StrategyOrdersModal";
 
 interface LivePositionsPanelProps {
@@ -17,30 +18,6 @@ interface LivePositionsPanelProps {
 interface ClosePositionButtonProps {
   strategyId: string;
   symbol: string;
-}
-
-function getPositionSide(positionIdx: PositionIdx): string {
-  switch (positionIdx) {
-    case PositionIdx.LONG:
-      return "Long";
-    case PositionIdx.SHORT:
-      return "Short";
-    case PositionIdx.ONE_WAY:
-      return "One-Way";
-    default:
-      return "Unknown";
-  }
-}
-
-function getPositionSideClass(positionIdx: PositionIdx): string {
-  switch (positionIdx) {
-    case PositionIdx.LONG:
-      return "text-bullish";
-    case PositionIdx.SHORT:
-      return "text-bearish";
-    default:
-      return "text-foreground-muted";
-  }
 }
 
 function ClosePositionButton({ strategyId, symbol }: ClosePositionButtonProps) {
@@ -150,30 +127,16 @@ export function LivePositionsPanel({ strategyId }: LivePositionsPanelProps) {
         </table>
       </div>
 
-      {positions.length > 0 && (
-        <div className="panel-footer">
-          <span className="text-xs text-foreground-subtle">
-            Showing {startItem}–{endItem} from {totalItems}
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={!hasPreviousPage}
-              className="btn-secondary px-3 py-1.5 text-[13px] rounded-xl flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft size={14} />
-              Previous
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={!hasNextPage}
-              className="btn-secondary px-3 py-1.5 text-[13px] rounded-xl flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-              <ChevronRight size={14} />
-            </button>
-          </div>
-        </div>
+      {totalItems > 0 && (
+        <PaginationControls
+          startItem={startItem}
+          endItem={endItem}
+          totalItems={totalItems}
+          hasPreviousPage={hasPreviousPage}
+          hasNextPage={hasNextPage}
+          onPrevious={() => setPage((p) => Math.max(1, p - 1))}
+          onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+        />
       )}
 
       {/* Orders Modal */}

@@ -238,7 +238,7 @@ export function BacktestDetails({
     if (backtestId || isLoading || !backtest) return;
 
     setSelectedBacktestId(backtest.id);
-  }, [backtest]);
+  }, [backtest, backtestId, isLoading, setSelectedBacktestId]);
 
   if (isLoading) {
     return <BacktestDetailsSkeleton />;

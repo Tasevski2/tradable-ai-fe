@@ -1,33 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { PaginationControls } from "@/components/ui/PaginationControls";
 import { cn } from "@/lib/utils/cn";
 import { formatPnlPercent, formatDateTime } from "@/lib/utils/format";
-import { getBacktestStatusDisplay } from "@/lib/utils/status";
+import {
+  getBacktestStatusDisplay,
+  getBacktestStatusPillClass,
+} from "@/lib/utils/status";
 import { useStrategyBacktests } from "@/lib/api/queries";
 import { usePaginationInfo } from "@/hooks";
 import { BacktestStatusEnum } from "@/types/common";
+import { BacktestHistoryTableBodySkeleton } from "@/components/strategy-builder/BacktestHistoryTable";
 
 interface BacktestHistoryPanelProps {
   strategyId: string;
   selectedBacktestId?: string;
   onViewDetails: (backtestId: string) => void;
-}
-
-function getStatusPillClass(status: BacktestStatusEnum): string {
-  switch (status) {
-    case BacktestStatusEnum.SUCCESS:
-      return "pill-ok";
-    case BacktestStatusEnum.RUNNING:
-    case BacktestStatusEnum.QUEUED:
-      return "pill-warn";
-    case BacktestStatusEnum.ERROR:
-      return "pill-bad";
-    default:
-      return "";
-  }
 }
 
 export function BacktestHistoryPanel({
@@ -97,7 +87,7 @@ export function BacktestHistoryPanel({
                       <span
                         className={cn(
                           "pill",
-                          getStatusPillClass(backtest.status),
+                          getBacktestStatusPillClass(backtest.status),
                         )}
                       >
                         {getBacktestStatusDisplay(backtest.status)}
@@ -138,63 +128,21 @@ export function BacktestHistoryPanel({
         </table>
       </div>
 
-      {backtests.length > 0 && (
-        <div className="panel-footer">
-          <span className="text-xs text-foreground-subtle">
-            Showing {startItem}–{endItem} from {totalItems}
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={!hasPreviousPage}
-              className="btn-secondary px-3 py-1.5 text-[13px] rounded-xl flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft size={14} />
-              Previous
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={!hasNextPage}
-              className="btn-secondary px-3 py-1.5 text-[13px] rounded-xl flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-              <ChevronRight size={14} />
-            </button>
-          </div>
-        </div>
+      {totalItems > 0 && (
+        <PaginationControls
+          startItem={startItem}
+          endItem={endItem}
+          totalItems={totalItems}
+          hasPreviousPage={hasPreviousPage}
+          hasNextPage={hasNextPage}
+          onPrevious={() => setPage((p) => Math.max(1, p - 1))}
+          onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+        />
       )}
     </div>
   );
 }
 
-function BacktestHistoryTableBodySkeleton() {
-  return (
-    <tbody>
-      {[...Array(5)].map((_, i) => (
-        <tr key={i}>
-          <td>
-            <Skeleton className="h-4 w-28 bg-background-overlay" />
-          </td>
-          <td>
-            <Skeleton className="h-4 w-16 bg-background-overlay" />
-          </td>
-          <td>
-            <Skeleton className="h-4 w-10 bg-background-overlay" />
-          </td>
-          <td>
-            <Skeleton className="h-6 w-16 rounded-full bg-background-overlay" />
-          </td>
-          <td>
-            <Skeleton className="h-4 w-12 bg-background-overlay" />
-          </td>
-          <td>
-            <Skeleton className="h-6 w-14 rounded-lg bg-background-overlay" />
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  );
-}
 
 export function BacktestHistoryPanelSkeleton() {
   return (

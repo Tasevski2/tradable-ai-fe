@@ -3,7 +3,7 @@ import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { useIsAuthenticated } from "@/stores/useAuthStore";
-import type { StrategyActivitiesResponse } from "@/types/api";
+import type { ApiResponse, StrategyActivityItem } from "@/types/api";
 
 interface UseStrategyActivitiesOptions {
   enabled?: boolean;
@@ -19,10 +19,10 @@ export function useStrategyActivities(
   return useQuery({
     queryKey: queryKeys.strategies.activities(strategyId),
     queryFn: async () => {
-      const response = await apiClient.get<StrategyActivitiesResponse>(
+      const response = await apiClient.get<ApiResponse<StrategyActivityItem[]>>(
         API_ENDPOINTS.STRATEGIES.ACTIVITIES(strategyId),
       );
-      return response;
+      return response.data;
     },
     enabled: isAuthenticated && enabled && !!strategyId,
   });

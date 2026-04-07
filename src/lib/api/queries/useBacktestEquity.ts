@@ -35,5 +35,6 @@ export function useBacktestEquity(
       return response.data;
     },
     enabled: isAuthenticated && enabled && !!strategyId,
+    staleTime: backtestId ? Infinity : 30_000,
   });
 }

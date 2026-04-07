@@ -28,5 +28,6 @@ export function useBacktestTrades(
       return response;
     },
     enabled: isAuthenticated && enabled && !!strategyId && !!backtestId,
+    staleTime: Infinity,
   });
 }

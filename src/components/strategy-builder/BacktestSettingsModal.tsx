@@ -11,9 +11,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useMarkets } from "@/lib/api/queries";
+import {
+  loadBacktestPreferences,
+  saveBacktestPreferences,
+} from "@/lib/storage/backtestPreferences";
 import { TimeframeEnum } from "@/types/common";
 
-const LOCALSTORAGE_KEY = "tradable-ai-backtest-prefs";
+// Re-export so callers can read preferences without importing the storage module
+export { loadBacktestPreferences as getBacktestPreferences } from "@/lib/storage/backtestPreferences";
+export type { BacktestPreferences } from "@/lib/storage/backtestPreferences";
 
 const DEFAULT_SYMBOL = "BTCUSDT";
 const DEFAULT_TIMEFRAME = TimeframeEnum.FIVE_MIN;
@@ -24,44 +30,6 @@ const TIMEFRAME_LABELS: Record<TimeframeEnum, string> = {
   [TimeframeEnum.FIFTEEN_MIN]: "15 Minutes",
   [TimeframeEnum.ONE_HOUR]: "1 Hour",
 };
-
-export interface BacktestPreferences {
-  symbol: string;
-  timeframe: TimeframeEnum;
-}
-
-type AllPreferences = Record<string, BacktestPreferences>;
-
-function loadPreferences(strategyId: string): BacktestPreferences | null {
-  try {
-    const raw = localStorage.getItem(LOCALSTORAGE_KEY);
-    if (!raw) return null;
-    const all: AllPreferences = JSON.parse(raw);
-    return all[strategyId] ?? null;
-  } catch {
-    return null;
-  }
-}
-
-function savePreferences(
-  strategyId: string,
-  prefs: BacktestPreferences,
-): void {
-  try {
-    const raw = localStorage.getItem(LOCALSTORAGE_KEY);
-    const all: AllPreferences = raw ? JSON.parse(raw) : {};
-    all[strategyId] = prefs;
-    localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(all));
-  } catch {
-    // Silently fail if localStorage is unavailable
-  }
-}
-
-export function getBacktestPreferences(
-  strategyId: string,
-): BacktestPreferences | null {
-  return loadPreferences(strategyId);
-}
 
 interface BacktestSettingsModalProps {
   isOpen: boolean;
@@ -75,7 +43,7 @@ export function BacktestSettingsModal({
   strategyId,
 }: BacktestSettingsModalProps) {
   const { data: marketsData, isLoading: isLoadingMarkets } = useMarkets();
-  const markets = marketsData?.data ?? [];
+  const markets = marketsData ?? [];
 
   const [symbol, setSymbol] = useState(DEFAULT_SYMBOL);
   const [timeframe, setTimeframe] = useState<TimeframeEnum>(DEFAULT_TIMEFRAME);
@@ -83,7 +51,7 @@ export function BacktestSettingsModal({
   // Load saved preferences when modal opens
   useEffect(() => {
     if (isOpen) {
-      const saved = loadPreferences(strategyId);
+      const saved = loadBacktestPreferences(strategyId);
       if (saved) {
         setSymbol(saved.symbol);
         setTimeframe(saved.timeframe);
@@ -95,7 +63,7 @@ export function BacktestSettingsModal({
   }, [isOpen, strategyId]);
 
   const handleSave = () => {
-    savePreferences(strategyId, { symbol, timeframe });
+    saveBacktestPreferences(strategyId, { symbol, timeframe });
     onClose();
   };
 

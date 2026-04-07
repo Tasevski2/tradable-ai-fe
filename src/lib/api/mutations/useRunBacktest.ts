@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type { RunBacktestDto, RunBacktestResponse } from "@/types/api";
 import { queryKeys } from "../queryKeys";
+import { getErrorMessage } from "@/lib/utils/errors";
 
 interface RunBacktestParams {
   strategyId: string;
@@ -32,6 +34,9 @@ export function useRunBacktest() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.backtests.equityLatest(strategyId),
       });
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Failed to start backtest"));
     },
   });
 }
