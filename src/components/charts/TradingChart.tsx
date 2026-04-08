@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   LineType,
   CandleType,
@@ -42,8 +42,59 @@ interface TradingChartProps {
   activeBacktestId?: string;
 }
 
-// ── Custom trade marker overlays ───────────────────────────────────────────
-// Registered once at module load (client-only, component is ssr:false).
+// Trade marker triangle + count label. Registered once at module load (ssr:false).
+
+const GAP = 5;
+const MARKER_H = 9;
+const MARKER_W = 8;
+
+function createTradeMarkerFigures(
+  x: number,
+  y: number,
+  count: number,
+  direction: "up" | "down",
+  color: string,
+) {
+  const tip = direction === "up" ? y + GAP : y - GAP;
+  const base = direction === "up" ? tip + MARKER_H : tip - MARKER_H;
+  const textY = direction === "up" ? base + 2 : base - 2;
+  const baseline = direction === "up" ? "top" : "bottom";
+
+  return [
+    {
+      type: "polygon",
+      ignoreEvent: true,
+      attrs: {
+        coordinates: [
+          { x, y: tip },
+          { x: x - MARKER_W, y: base },
+          { x: x + MARKER_W, y: base },
+        ],
+      },
+      styles: { style: PolygonType.Fill, color },
+    },
+    {
+      type: "text",
+      ignoreEvent: true,
+      attrs: {
+        x,
+        y: textY,
+        text: String(count),
+        align: "center" as CanvasTextAlign,
+        baseline: baseline as CanvasTextBaseline,
+      },
+      styles: {
+        style: PolygonType.Stroke,
+        borderSize: 0,
+        backgroundColor: "transparent",
+        color,
+        size: 9,
+        weight: "bold",
+        family: "sans-serif",
+      },
+    },
+  ];
+}
 
 registerOverlay({
   name: "buyTradeMarker",
@@ -53,33 +104,15 @@ registerOverlay({
   totalStep: 1,
   lock: true,
   createPointFigures: ({ overlay, coordinates }) => {
-    const count = overlay.extendData as number;
     const coord = coordinates[0];
     if (!coord) return [];
-    const { x, y } = coord;
-    const gap = 5;
-    const h = 9;
-    const w = 8;
-    return [
-      {
-        type: "polygon",
-        ignoreEvent: true,
-        attrs: {
-          coordinates: [
-            { x, y: y + gap },
-            { x: x - w, y: y + gap + h },
-            { x: x + w, y: y + gap + h },
-          ],
-        },
-        styles: { style: PolygonType.Fill, color: "#22c55e" },
-      },
-      {
-        type: "text",
-        ignoreEvent: true,
-        attrs: { x, y: y + gap + h + 2, text: String(count), align: "center" as CanvasTextAlign, baseline: "top" as CanvasTextBaseline },
-        styles: { style: PolygonType.Stroke, borderSize: 0, backgroundColor: "transparent", color: "#22c55e", size: 9, weight: "bold", family: "sans-serif" },
-      },
-    ];
+    return createTradeMarkerFigures(
+      coord.x,
+      coord.y,
+      overlay.extendData as number,
+      "up",
+      "#22c55e",
+    );
   },
 });
 
@@ -91,39 +124,18 @@ registerOverlay({
   totalStep: 1,
   lock: true,
   createPointFigures: ({ overlay, coordinates }) => {
-    const count = overlay.extendData as number;
     const coord = coordinates[0];
     if (!coord) return [];
-    const { x, y } = coord;
-    const gap = 5;
-    const h = 9;
-    const w = 8;
-    return [
-      {
-        type: "polygon",
-        ignoreEvent: true,
-        attrs: {
-          coordinates: [
-            { x, y: y - gap },
-            { x: x - w, y: y - gap - h },
-            { x: x + w, y: y - gap - h },
-          ],
-        },
-        styles: { style: PolygonType.Fill, color: "#ef4444" },
-      },
-      {
-        type: "text",
-        ignoreEvent: true,
-        attrs: { x, y: y - gap - h - 2, text: String(count), align: "center" as CanvasTextAlign, baseline: "bottom" as CanvasTextBaseline },
-        styles: { style: PolygonType.Stroke, borderSize: 0, backgroundColor: "transparent", color: "#ef4444", size: 9, weight: "bold", family: "sans-serif" },
-      },
-    ];
+    return createTradeMarkerFigures(
+      coord.x,
+      coord.y,
+      overlay.extendData as number,
+      "down",
+      "#ef4444",
+    );
   },
 });
 
-/**
- * Fetch the latest price for a symbol from Bybit to calculate display precision.
- */
 async function fetchLatestPrice(symbol: string): Promise<number> {
   try {
     const params = new URLSearchParams({
@@ -144,9 +156,6 @@ async function fetchLatestPrice(symbol: string): Promise<number> {
   }
 }
 
-/**
- * Find the Period object that matches a saved timeframe string.
- */
 function findPeriod(text: string) {
   return (
     SUPPORTED_PERIODS.find((p) => p.text === text) ??
@@ -154,9 +163,6 @@ function findPeriod(text: string) {
   );
 }
 
-/**
- * Chart style configuration matching the project's luxury dark theme.
- */
 const CHART_STYLES = {
   grid: {
     horizontal: {
@@ -253,11 +259,13 @@ export function TradingChart({
   const innerChartRef = useRef<Chart | null>(null);
   const datafeedRef = useRef<BybitDatafeed | null>(null);
   const tradeOverlayIdsRef = useRef<string[]>([]);
+  const renderedTimestampsRef = useRef<Set<number>>(new Set());
 
   const [visibleRange, setVisibleRange] = useState<{
     from: number;
     to: number;
   } | null>(null);
+  const [symbolMismatch, setSymbolMismatch] = useState(false);
   const debouncedRange = useDebounce(visibleRange, 400);
 
   const { data: marketsData, isLoading: marketsLoading } = useMarkets();
@@ -269,12 +277,11 @@ export function TradingChart({
     { enabled: !!activeBacktestId },
   );
 
-  // ── Lazy inner chart accessor ──────────────────────────────────────────────
-  // klinecharts-pro wraps klinecharts internally and never exposes the raw
-  // Chart instance. We recover it by finding the element stamped with
-  // [k-line-chart-id] and passing it to klineInit(), which looks up the
-  // already-registered instance from its internal map via dom.id.
-  const resolveInnerChart = (): Chart | null => {
+  // klinecharts-pro never exposes the inner klinecharts Chart instance.
+  // We recover it by locating the element stamped with [k-line-chart-id] and
+  // calling klineInit() on it — klinecharts looks up the existing instance
+  // from its internal map keyed by dom.id, so no new chart is created.
+  const resolveInnerChart = useCallback((): Chart | null => {
     if (innerChartRef.current) return innerChartRef.current;
     const el = containerRef.current?.querySelector(
       "[k-line-chart-id]",
@@ -285,40 +292,41 @@ export function TradingChart({
     const chart = klineInit(el) as Chart | null;
     if (chart) innerChartRef.current = chart;
     return chart;
-  };
+  }, []);
 
-  // Fetch grouped trade markers for the visible window
   const { data: chartTradesData } = useBacktestChartTrades(
     strategyId,
     activeBacktestId ?? "",
     debouncedRange?.from ?? 0,
     debouncedRange?.to ?? 0,
     backtestDetail?.timeframe ?? TimeframeEnum.FIVE_MIN,
-    { enabled: !!activeBacktestId && !!debouncedRange },
+    { enabled: !!activeBacktestId && !!debouncedRange && !symbolMismatch },
   );
 
-  // ── Chart initialisation ───────────────────────────────────────────────────
-  // The chart is recreated whenever backtestDetail changes so the correct
-  // symbol and period are passed directly to the KLineChartPro constructor.
+  // klinecharts-pro quirks that force full chart recreation on each backtest change:
   //
-  // WHY NOT setSymbol() + setPeriod()?
-  // klinecharts-pro uses SolidJS 1.6 which runs reactive effects synchronously
-  // outside a batch. Calling setSymbol() triggers the data-fetch effect
-  // immediately (sets internal flag a=true). The subsequent setPeriod() call
-  // hits a=true and is silently skipped — candles never reload.
-  // Recreating the chart avoids this race entirely.
+  // 1. VISIBLE RANGE: klinecharts-pro calls getHistoryKLineData() directly whenever
+  //    the visible range changes (scroll, zoom). There is no event we can subscribe to,
+  //    so we track range changes via the BybitDatafeed onRangeChange callback and
+  //    debounce them to drive our own backtest trade marker queries.
+  //
+  // 2. SYMBOL/PERIOD RACE: klinecharts-pro uses SolidJS 1.6 whose reactive effects run
+  //    synchronously outside a batch. Calling setSymbol() immediately triggers the
+  //    data-fetch effect (sets internal flag a=true). The subsequent setPeriod() call
+  //    sees a=true and is silently skipped — candles never reload. We avoid this by
+  //    always passing symbol + period in the constructor rather than calling setters.
+  //
+  // 3. SOLIDJS DOM LEAK: KLineChartPro renders into the container via SolidJS render().
+  //    The returned cleanup (t.textContent = "") is never captured or called by the
+  //    library. After dispose(), the SolidJS DOM remains, causing the next constructor
+  //    call to append a new chart tree instead of replacing. We clear it manually.
 
   useEffect(() => {
     if (!containerRef.current || markets.length === 0) return;
-
-    // Wait for backtest data before creating the chart so the constructor
-    // receives the correct symbol/period in one shot.
     if (activeBacktestId && backtestDetail === undefined) return;
 
     const container = containerRef.current;
     let isMounted = true;
-
-    // Capture backtest at effect-invocation time (closure-safe).
     const capturedBacktest = activeBacktestId ? (backtestDetail ?? null) : null;
 
     const init = async () => {
@@ -339,6 +347,17 @@ export function TradingChart({
         markets,
         (symbol, periodText) => {
           saveChartPreferences(strategyId, { symbol, timeframe: periodText });
+          if (capturedBacktest && symbol !== capturedBacktest.symbol) {
+            const inner = resolveInnerChart();
+            if (inner) {
+              tradeOverlayIdsRef.current.forEach((id) => inner.removeOverlay(id));
+            }
+            tradeOverlayIdsRef.current = [];
+            renderedTimestampsRef.current = new Set();
+            if (isMounted) setSymbolMismatch(true);
+          } else {
+            if (isMounted) setSymbolMismatch(false);
+          }
         },
         (from, to) => {
           if (isMounted) setVisibleRange({ from, to });
@@ -378,42 +397,41 @@ export function TradingChart({
     return () => {
       isMounted = false;
       if (container) {
-        dispose(container);       // klinecharts: removes internal canvas/panes
-        container.textContent = ""; // clears SolidJS DOM left behind by klinecharts-pro
+        dispose(container);         // removes klinecharts canvas/panes
+        container.textContent = ""; // clears orphaned SolidJS DOM (see quirk #3 above)
       }
       datafeedRef.current?.destroy();
       datafeedRef.current = null;
       chartRef.current = null;
       innerChartRef.current = null;
       tradeOverlayIdsRef.current = [];
+      renderedTimestampsRef.current = new Set();
+      setSymbolMismatch(false);
     };
-  // backtestDetail in deps: recreate chart when backtest changes so
-  // constructor gets the new symbol/period (avoids setSymbol race).
+  // backtestDetail in deps triggers full recreation on backtest change, passing
+  // the new symbol/period directly to the constructor (avoids the setter race, quirk #2).
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [markets, strategyId, activeBacktestId, backtestDetail]);
-
-  // ── Clear visible-range state when backtest is deselected ──────────────────
 
   useEffect(() => {
     if (!activeBacktestId) {
       setVisibleRange(null);
+      setSymbolMismatch(false);
     }
   }, [activeBacktestId]);
 
-  // ── Render grouped trade markers as overlays ───────────────────────────────
-
   useEffect(() => {
     const inner = resolveInnerChart();
-    if (!inner) return;
-
-    tradeOverlayIdsRef.current.forEach((id) => inner.removeOverlay(id));
-    tradeOverlayIdsRef.current = [];
-
-    if (!chartTradesData?.data?.length) return;
+    if (!inner || !chartTradesData?.data?.length) return;
 
     const candleMap = new Map(inner.getDataList().map((c) => [c.timestamp, c]));
 
-    const overlays: OverlayCreate[] = chartTradesData.data.flatMap((group) => {
+    const newGroups = chartTradesData.data.filter(
+      (g) => !renderedTimestampsRef.current.has(g.timestamp),
+    );
+    if (newGroups.length === 0) return;
+
+    const overlays: OverlayCreate[] = newGroups.flatMap((group) => {
       const results: OverlayCreate[] = [];
       const candle = candleMap.get(group.timestamp);
 
@@ -440,13 +458,13 @@ export function TradingChart({
 
     if (overlays.length > 0) {
       const ids = inner.createOverlay(overlays);
-      tradeOverlayIdsRef.current = (Array.isArray(ids) ? ids : [ids]).filter(
+      const newIds = (Array.isArray(ids) ? ids : [ids]).filter(
         (id): id is string => id !== null,
       );
+      tradeOverlayIdsRef.current = [...tradeOverlayIdsRef.current, ...newIds];
+      newGroups.forEach((g) => renderedTimestampsRef.current.add(g.timestamp));
     }
-  }, [chartTradesData]);
-
-  // ── Render ─────────────────────────────────────────────────────────────────
+  }, [chartTradesData, resolveInnerChart]);
 
   if (marketsLoading || markets.length === 0) {
     return (
