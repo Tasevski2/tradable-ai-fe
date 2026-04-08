@@ -45,7 +45,6 @@ export function ChatMessage({
         {createdAt && <span>{formatTime(createdAt)}</span>}
       </div>
 
-      {/* Tool call indicators */}
       {callingTools.length > 0 && (
         <div className="flex flex-col gap-1 mb-2">
           {callingTools.map((tool) => (
@@ -60,7 +59,6 @@ export function ChatMessage({
         </div>
       )}
 
-      {/* Message content */}
       {isStreaming && !content ? (
         <div className="flex items-center gap-1.5 text-[13px] text-foreground-muted">
           <span className="animate-pulse">Thinking</span>

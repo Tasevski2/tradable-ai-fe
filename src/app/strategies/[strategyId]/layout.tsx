@@ -10,12 +10,6 @@ interface StrategyBuilderLayoutProps {
   children: ReactNode;
 }
 
-/**
- * Strategy Builder Layout
- *
- * Protected layout for the strategy builder page.
- * Redirects to home if not authenticated.
- */
 export default function StrategyBuilderLayout({
   children,
 }: StrategyBuilderLayoutProps) {
@@ -23,7 +17,6 @@ export default function StrategyBuilderLayout({
   const isAuthenticated = useIsAuthenticated();
   const isLoading = useAuthLoading();
 
-  // Show nothing while auth is loading (prevents flash)
   if (isLoading) {
     return (
       <>
@@ -35,7 +28,6 @@ export default function StrategyBuilderLayout({
     );
   }
 
-  // Redirect to home if not authenticated
   if (!isAuthenticated) {
     router.replace("/");
     return null;

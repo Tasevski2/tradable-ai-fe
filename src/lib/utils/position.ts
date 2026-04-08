@@ -1,6 +1,5 @@
 import { PositionIdx } from "@/types/common";
 
-/** Human-readable label for a Bybit position side. */
 export function getPositionSide(positionIdx: PositionIdx): string {
   switch (positionIdx) {
     case PositionIdx.LONG:
@@ -14,7 +13,6 @@ export function getPositionSide(positionIdx: PositionIdx): string {
   }
 }
 
-/** Tailwind colour class for a Bybit position side. */
 export function getPositionSideClass(positionIdx: PositionIdx): string {
   switch (positionIdx) {
     case PositionIdx.LONG:

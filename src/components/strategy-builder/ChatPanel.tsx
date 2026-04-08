@@ -29,21 +29,17 @@ export function ChatPanel({
 }: ChatPanelProps) {
   const queryClient = useQueryClient();
 
-  // ── Data hooks ──────────────────────────────────────────────
   const { data, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useChatMessages(strategyId);
 
   const sendMessage = useSendChatMessage();
 
-  // Flatten pages: pages are [most recent, older, ...], each page sorted
-  // oldest → newest. Reverse so the oldest messages appear at the top.
+  // Pages arrive [most recent, older, ...] — reverse so oldest appear at top
   const messages: ChatMessageType[] = data?.pages
     ? [...data.pages].reverse().flatMap((page) => page.data)
     : [];
 
-  // ── Streaming ───────────────────────────────────────────────
-  // Keep a ref so the onDone callback always reads the finalized content
-  // without the closure going stale.
+  // Ref so the onDone closure always reads finalized content without going stale
   const streamingContentRef = useRef("");
 
   const {
@@ -87,10 +83,9 @@ export function ChatPanel({
     },
   });
 
-  // Keep ref in sync with the latest streaming content
   streamingContentRef.current = streamingContent;
 
-  // ── Auto-resume if last message is from the user ───────────
+  // Resume streaming if the last persisted message is from the user (e.g. page reload)
   const hasResumedRef = useRef(false);
   const lastMessage = messages[messages.length - 1];
   const lastMessageId = lastMessage?.id;
@@ -110,7 +105,6 @@ export function ChatPanel({
     }
   }, [isLoading, isStreaming, lastMessageId, lastMessageRole, startStream]);
 
-  // ── Scroll behaviour ────────────────────────────────────────
   const { messagesEndRef, scrollContainerRef, loadMoreSentinelRef } =
     useChatScroll({
       messageCount: messages.length,
@@ -121,7 +115,6 @@ export function ChatPanel({
       fetchNextPage,
     });
 
-  // ── Send message ────────────────────────────────────────────
   const handleSendMessage = useCallback(
     (content: string) => {
       const tempId = `temp-${Date.now()}`;
@@ -132,7 +125,6 @@ export function ChatPanel({
         createdAt: new Date().toISOString(),
       };
 
-      // Optimistically add the message so the UI updates immediately
       queryClient.setQueryData<InfiniteData<ChatMessagesResponse>>(
         queryKeys.chat.messages(strategyId),
         (old) => {
@@ -155,7 +147,6 @@ export function ChatPanel({
         { strategyId, message: content },
         {
           onSuccess: (response) => {
-            // Replace the temp id with the real server-assigned id
             queryClient.setQueryData<InfiniteData<ChatMessagesResponse>>(
               queryKeys.chat.messages(strategyId),
               (old) => {
@@ -177,7 +168,6 @@ export function ChatPanel({
             startStream(response.messageId);
           },
           onError: () => {
-            // Roll back the optimistic message on failure
             queryClient.setQueryData<InfiniteData<ChatMessagesResponse>>(
               queryKeys.chat.messages(strategyId),
               (old) => {
@@ -198,7 +188,6 @@ export function ChatPanel({
     [queryClient, strategyId, sendMessage, startStream],
   );
 
-  // ── Derived state ───────────────────────────────────────────
   const visibleActions: UserChoiceAction[] =
     !isStreaming &&
     lastMessage?.role === "assistant" &&
@@ -212,7 +201,6 @@ export function ChatPanel({
 
   return (
     <div className="panel flex flex-col h-full min-h-0">
-      {/* Header */}
       <div className="panel-header">
         <div className="flex items-center gap-2">
           {draftDiffers && (
@@ -221,7 +209,6 @@ export function ChatPanel({
         </div>
       </div>
 
-      {/* Messages */}
       <div
         ref={scrollContainerRef}
         className="flex-1 min-h-0 overflow-y-auto p-3.5 flex flex-col gap-3"
@@ -242,7 +229,6 @@ export function ChatPanel({
         />
       </div>
 
-      {/* Input */}
       <div className="p-2">
         <ChatInput
           onSubmit={handleSendMessage}

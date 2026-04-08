@@ -18,7 +18,6 @@ import { useBacktestDetail, useBacktestEquity } from "@/lib/api/queries";
 import { BacktestTradesModal } from "./BacktestTradesModal";
 import type { BacktestMetrics } from "@/types/api";
 
-// Dynamic import for SSR-safe chart
 const EquityCurveChart = dynamic(
   () =>
     import("@/components/charts/EquityCurveChart").then(
@@ -265,7 +264,6 @@ export function BacktestDetails({
           </div>
         ) : (
           <>
-            {/* KPI Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
               <div className="kpi-card">
                 <div className="kpi-label">Net PnL</div>
@@ -313,7 +311,6 @@ export function BacktestDetails({
               </div>
             </div>
 
-            {/* Equity Curve Chart */}
             <div className="mt-3">
               {isEquityLoading ? (
                 <Skeleton className="h-50 w-full rounded-xl bg-background-overlay" />
@@ -326,7 +323,6 @@ export function BacktestDetails({
               )}
             </div>
 
-            {/* Tabs */}
             <div className="flex items-center justify-between flex-wrap gap-3 mt-3">
               <div className="flex gap-2 flex-wrap">
                 {tabs.map((tab) => (
@@ -347,13 +343,11 @@ export function BacktestDetails({
               </button>
             </div>
 
-            {/* Tab Content */}
             <div className="mt-3">{renderTabContent()}</div>
           </>
         )}
       </div>
 
-      {/* Trades Modal */}
       {backtest && (
         <BacktestTradesModal
           isOpen={isTradesModalOpen}

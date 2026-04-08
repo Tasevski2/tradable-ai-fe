@@ -139,7 +139,6 @@ export function LivePositionsPanel({ strategyId }: LivePositionsPanelProps) {
         />
       )}
 
-      {/* Orders Modal */}
       <StrategyOrdersModal
         isOpen={isOrdersModalOpen}
         onClose={() => setIsOrdersModalOpen(false)}

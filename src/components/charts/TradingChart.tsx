@@ -42,8 +42,6 @@ interface TradingChartProps {
   activeBacktestId?: string;
 }
 
-// Trade marker triangle + count label. Registered once at module load (ssr:false).
-
 const GAP = 5;
 const MARKER_H = 9;
 const MARKER_W = 8;
@@ -397,8 +395,8 @@ export function TradingChart({
     return () => {
       isMounted = false;
       if (container) {
-        dispose(container);         // removes klinecharts canvas/panes
-        container.textContent = ""; // clears orphaned SolidJS DOM (see quirk #3 above)
+        dispose(container);
+        container.textContent = "";
       }
       datafeedRef.current?.destroy();
       datafeedRef.current = null;

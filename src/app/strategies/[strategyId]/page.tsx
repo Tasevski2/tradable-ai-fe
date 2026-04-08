@@ -30,12 +30,10 @@ export default function StrategyBuilderPage({
 
   const { data: strategy, isLoading, error } = useStrategy(strategyId);
 
-  // Handle 404 error
   if (is404Error(error)) {
     notFound();
   }
 
-  // Handle other errors
   if (error && !is404Error(error)) {
     return (
       <div className="p-8">
@@ -46,14 +44,12 @@ export default function StrategyBuilderPage({
     );
   }
 
-  // Loading state
   if (isLoading || !strategy) {
     return <StrategyBuilderPageSkeleton />;
   }
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      {/* Sticky Header */}
       <BuilderHeader
         strategyId={strategy.id}
         name={strategy.name}
@@ -61,9 +57,7 @@ export default function StrategyBuilderPage({
         status={strategy.status}
       />
 
-      {/* Main Content - Fullscreen Grid */}
       <main className="flex-1 h-[calc(100vh-64px)] grid grid-cols-[420px_1fr] gap-3 p-3 overflow-hidden">
-        {/* Left: Chat Panel (full height) */}
         <div className="h-full min-h-0 overflow-hidden">
           <ChatPanel
             strategyId={strategy.id}
@@ -72,9 +66,7 @@ export default function StrategyBuilderPage({
           />
         </div>
 
-        {/* Right: Scrollable Column */}
         <div className="h-full min-h-0 overflow-y-auto pr-0.5 flex flex-col gap-3">
-          {/* Chart / Diagram Panel */}
           <div className="shrink-0">
             <ChartDiagramPanel
               strategyId={strategy.id}
@@ -86,7 +78,6 @@ export default function StrategyBuilderPage({
             />
           </div>
 
-          {/* Backtests Panel */}
           <div className="shrink-0">
             <BacktestPanel
               strategyId={strategy.id}
@@ -96,7 +87,6 @@ export default function StrategyBuilderPage({
             />
           </div>
 
-          {/* Bottom padding for scroll comfort */}
           <div className="h-1" />
         </div>
       </main>

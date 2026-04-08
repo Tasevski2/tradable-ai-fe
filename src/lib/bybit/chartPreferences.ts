@@ -1,10 +1,3 @@
-/**
- * Per-Strategy Chart Preferences
- *
- * Persists the user's selected symbol and timeframe for each strategy
- * in localStorage. Mirrors the pattern used for backtest preferences.
- */
-
 import { CHART_PREFS_KEY, DEFAULT_SYMBOL, DEFAULT_PERIOD_TEXT } from "./constants";
 
 export interface ChartPreferences {
@@ -37,7 +30,7 @@ export function saveChartPreferences(
     all[strategyId] = prefs;
     localStorage.setItem(CHART_PREFS_KEY, JSON.stringify(all));
   } catch {
-    // Silently fail if localStorage is unavailable
+    // localStorage may be unavailable (private browsing, quota exceeded)
   }
 }
 

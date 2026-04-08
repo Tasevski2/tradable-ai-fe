@@ -30,7 +30,6 @@ interface StrategyDetailPageProps {
 export default function StrategyDetailPage({
   params,
 }: StrategyDetailPageProps) {
-  // Unwrap params using React.use() pattern for Next.js 15+
   const { strategyId } = use(params);
 
   const [selectedBacktestId, setSelectedBacktestId] = useState<
@@ -38,12 +37,10 @@ export default function StrategyDetailPage({
   >();
   const { data: strategy, isLoading, error } = useStrategy(strategyId);
 
-  // Handle 404 error
   if (is404Error(error)) {
     notFound();
   }
 
-  // Handle other errors
   if (error && !is404Error(error)) {
     return (
       <div className="p-8">
@@ -54,14 +51,12 @@ export default function StrategyDetailPage({
     );
   }
 
-  // Loading state
   if (isLoading || !strategy) {
     return <StrategyDetailPageSkeleton />;
   }
 
   return (
     <div className="min-h-screen">
-      {/* Sticky Header */}
       <StrategyHeader
         strategyId={strategy.id}
         name={strategy.name}
@@ -69,14 +64,10 @@ export default function StrategyDetailPage({
         status={strategy.status}
       />
 
-      {/* Main Content */}
       <div className="max-w-[1240px] mx-auto px-4 pb-16">
-        {/* Summary Panel */}
         <StrategySummary strategyId={strategy.id} />
 
-        {/* Two Column Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-3.5 mt-4">
-          {/* Left Column */}
           <div className="flex flex-col gap-3.5 min-w-0">
             <LivePositionsPanel strategyId={strategy.id} />
 
@@ -93,7 +84,6 @@ export default function StrategyDetailPage({
             />
           </div>
 
-          {/* Right Column */}
           <div className="flex flex-col gap-3.5 min-w-0">
             <StrategyFlowPanel
               draftVersion={strategy.draftConfigVersion}

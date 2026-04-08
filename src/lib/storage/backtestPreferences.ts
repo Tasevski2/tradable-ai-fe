@@ -18,20 +18,12 @@ function readAll(): AllPreferences {
   }
 }
 
-/**
- * Load the saved backtest preferences for a specific strategy.
- * Returns `null` if no preferences have been saved yet.
- */
 export function loadBacktestPreferences(
   strategyId: string,
 ): BacktestPreferences | null {
   return readAll()[strategyId] ?? null;
 }
 
-/**
- * Persist backtest preferences for a specific strategy.
- * Silently ignores errors (e.g. private browsing with storage disabled).
- */
 export function saveBacktestPreferences(
   strategyId: string,
   prefs: BacktestPreferences,
@@ -41,6 +33,6 @@ export function saveBacktestPreferences(
     all[strategyId] = prefs;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
   } catch {
-    // Ignore — localStorage may be unavailable (private browsing, quota exceeded)
+    // localStorage may be unavailable (private browsing, quota exceeded)
   }
 }
