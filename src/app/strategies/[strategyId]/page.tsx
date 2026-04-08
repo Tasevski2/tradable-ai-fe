@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import { notFound } from "next/navigation";
 import { useStrategy } from "@/lib/api/queries";
 import { is404Error } from "@/lib/utils/errors";
@@ -25,6 +25,8 @@ export default function StrategyBuilderPage({
   params,
 }: StrategyBuilderPageProps) {
   const { strategyId } = use(params);
+
+  const [selectedBacktestId, setSelectedBacktestId] = useState<string | undefined>();
 
   const { data: strategy, isLoading, error } = useStrategy(strategyId);
 
@@ -80,6 +82,7 @@ export default function StrategyBuilderPage({
               liveConfigJson={strategy.liveConfigJson}
               draftVersion={strategy.draftConfigVersion}
               liveVersion={strategy.liveConfigVersion}
+              activeBacktestId={selectedBacktestId}
             />
           </div>
 
@@ -88,6 +91,8 @@ export default function StrategyBuilderPage({
             <BacktestPanel
               strategyId={strategy.id}
               draftConfigJson={strategy.draftConfigJson}
+              selectedBacktestId={selectedBacktestId}
+              onBacktestSelect={setSelectedBacktestId}
             />
           </div>
 

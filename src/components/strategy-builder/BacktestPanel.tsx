@@ -20,15 +20,16 @@ import { useRunBacktest } from "@/lib/api/mutations";
 interface BacktestPanelProps {
   strategyId: string;
   draftConfigJson: unknown | null;
+  selectedBacktestId: string | undefined;
+  onBacktestSelect: (backtestId: string) => void;
 }
 
 export function BacktestPanel({
   strategyId,
   draftConfigJson,
+  selectedBacktestId,
+  onBacktestSelect,
 }: BacktestPanelProps) {
-  const [selectedBacktestId, setSelectedBacktestId] = useState<
-    string | undefined
-  >();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const runBacktest = useRunBacktest();
@@ -81,7 +82,7 @@ export function BacktestPanel({
           <BacktestHistoryTable
             strategyId={strategyId}
             selectedId={selectedBacktestId}
-            onViewDetails={setSelectedBacktestId}
+            onViewDetails={onBacktestSelect}
           />
         </div>
 
@@ -90,7 +91,7 @@ export function BacktestPanel({
           <BacktestDetailsCompact
             strategyId={strategyId}
             backtestId={selectedBacktestId}
-            setSelectedBacktestId={setSelectedBacktestId}
+            setSelectedBacktestId={onBacktestSelect}
           />
         </div>
       </div>

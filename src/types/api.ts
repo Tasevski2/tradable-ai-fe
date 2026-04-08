@@ -192,6 +192,28 @@ export interface BacktestTradeItem {
 
 export type BacktestTradesResponse = PaginatedResponse<BacktestTradeItem>;
 
+export interface ChartTradeDetail {
+  id: string;
+  entryT: string;
+  exitT: string;
+  entryPrice: string;
+  exitPrice: string;
+  pnlUsd: string;
+  pnlPct: string;
+}
+
+export interface BacktestChartTradeGroup {
+  timestamp: number;
+  buyCount: number;
+  sellCount: number;
+  buyTrades: ChartTradeDetail[];
+  sellTrades: ChartTradeDetail[];
+}
+
+export interface BacktestChartTradesResponse {
+  data: BacktestChartTradeGroup[];
+}
+
 export interface FilledOrderActivityData {
   symbol: string;
   side: OrderSideEnum;

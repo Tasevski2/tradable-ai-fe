@@ -1,6 +1,8 @@
 const API_BASE = "/api";
 
-function buildQueryString(params: Record<string, string | number | undefined>): string {
+function buildQueryString(
+  params: Record<string, string | number | undefined>,
+): string {
   const searchParams = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
     if (value !== undefined) searchParams.set(key, String(value));
@@ -63,6 +65,14 @@ export const API_ENDPOINTS = {
       `${API_BASE}/strategies/${strategyId}/backtests/latest/equity`,
     EQUITY: (strategyId: string, backtestId: string) =>
       `${API_BASE}/strategies/${strategyId}/backtests/${backtestId}/equity`,
+    CHART_TRADES: (
+      strategyId: string,
+      backtestId: string,
+      from: number,
+      to: number,
+      timeframe: string,
+    ) =>
+      `${API_BASE}/strategies/${strategyId}/backtests/${backtestId}/trades/chart${buildQueryString({ from, to, timeframe })}`,
   },
   ORDERS: {
     BY_STRATEGY: (strategyId: string, page = 1, limit = 10) =>

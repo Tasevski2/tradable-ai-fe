@@ -1,11 +1,26 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { LineType, CandleType, dispose } from "klinecharts";
+import { useEffect, useRef, useState } from "react";
+import {
+  LineType,
+  CandleType,
+  PolygonType,
+  dispose,
+  init as klineInit,
+  registerOverlay,
+} from "klinecharts";
+import type { Chart, OverlayCreate } from "klinecharts";
 import { KLineChartPro } from "@klinecharts/pro";
 import "@klinecharts/pro/dist/klinecharts-pro.css";
-import { useMarkets } from "@/lib/api/queries";
-import { BybitDatafeed, calculatePricePrecision } from "@/lib/bybit/BybitDatafeed";
+import {
+  useMarkets,
+  useBacktestDetail,
+  useBacktestChartTrades,
+} from "@/lib/api/queries";
+import {
+  BybitDatafeed,
+  calculatePricePrecision,
+} from "@/lib/bybit/BybitDatafeed";
 import {
   SUPPORTED_PERIODS,
   DEFAULT_SYMBOL,
@@ -17,11 +32,94 @@ import {
   loadChartPreferences,
   saveChartPreferences,
 } from "@/lib/bybit/chartPreferences";
+import { timeframeEnumToPeriodText } from "@/lib/utils/timeframe";
+import { useDebounce } from "@/hooks";
+import { TimeframeEnum } from "@/types/common";
 import { Loader2 } from "lucide-react";
 
 interface TradingChartProps {
   strategyId: string;
+  activeBacktestId?: string;
 }
+
+// ── Custom trade marker overlays ───────────────────────────────────────────
+// Registered once at module load (client-only, component is ssr:false).
+
+registerOverlay({
+  name: "buyTradeMarker",
+  needDefaultPointFigure: false,
+  needDefaultXAxisFigure: false,
+  needDefaultYAxisFigure: false,
+  totalStep: 1,
+  lock: true,
+  createPointFigures: ({ overlay, coordinates }) => {
+    const count = overlay.extendData as number;
+    const coord = coordinates[0];
+    if (!coord) return [];
+    const { x, y } = coord;
+    const gap = 5;
+    const h = 9;
+    const w = 8;
+    return [
+      {
+        type: "polygon",
+        ignoreEvent: true,
+        attrs: {
+          coordinates: [
+            { x, y: y + gap },
+            { x: x - w, y: y + gap + h },
+            { x: x + w, y: y + gap + h },
+          ],
+        },
+        styles: { style: PolygonType.Fill, color: "#22c55e" },
+      },
+      {
+        type: "text",
+        ignoreEvent: true,
+        attrs: { x, y: y + gap + h + 2, text: String(count), align: "center" as CanvasTextAlign, baseline: "top" as CanvasTextBaseline },
+        styles: { style: PolygonType.Stroke, borderSize: 0, backgroundColor: "transparent", color: "#22c55e", size: 9, weight: "bold", family: "sans-serif" },
+      },
+    ];
+  },
+});
+
+registerOverlay({
+  name: "sellTradeMarker",
+  needDefaultPointFigure: false,
+  needDefaultXAxisFigure: false,
+  needDefaultYAxisFigure: false,
+  totalStep: 1,
+  lock: true,
+  createPointFigures: ({ overlay, coordinates }) => {
+    const count = overlay.extendData as number;
+    const coord = coordinates[0];
+    if (!coord) return [];
+    const { x, y } = coord;
+    const gap = 5;
+    const h = 9;
+    const w = 8;
+    return [
+      {
+        type: "polygon",
+        ignoreEvent: true,
+        attrs: {
+          coordinates: [
+            { x, y: y - gap },
+            { x: x - w, y: y - gap - h },
+            { x: x + w, y: y - gap - h },
+          ],
+        },
+        styles: { style: PolygonType.Fill, color: "#ef4444" },
+      },
+      {
+        type: "text",
+        ignoreEvent: true,
+        attrs: { x, y: y - gap - h - 2, text: String(count), align: "center" as CanvasTextAlign, baseline: "bottom" as CanvasTextBaseline },
+        styles: { style: PolygonType.Stroke, borderSize: 0, backgroundColor: "transparent", color: "#ef4444", size: 9, weight: "bold", family: "sans-serif" },
+      },
+    ];
+  },
+});
 
 /**
  * Fetch the latest price for a symbol from Bybit to calculate display precision.
@@ -146,43 +244,108 @@ const CHART_STYLES = {
   },
 };
 
-export function TradingChart({ strategyId }: TradingChartProps) {
+export function TradingChart({
+  strategyId,
+  activeBacktestId,
+}: TradingChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<KLineChartPro | null>(null);
+  const innerChartRef = useRef<Chart | null>(null);
   const datafeedRef = useRef<BybitDatafeed | null>(null);
-  const { data: marketsData, isLoading: marketsLoading } = useMarkets();
+  const tradeOverlayIdsRef = useRef<string[]>([]);
 
+  const [visibleRange, setVisibleRange] = useState<{
+    from: number;
+    to: number;
+  } | null>(null);
+  const debouncedRange = useDebounce(visibleRange, 400);
+
+  const { data: marketsData, isLoading: marketsLoading } = useMarkets();
   const markets = marketsData ?? [];
+
+  const { data: backtestDetail } = useBacktestDetail(
+    strategyId,
+    activeBacktestId,
+    { enabled: !!activeBacktestId },
+  );
+
+  // ── Lazy inner chart accessor ──────────────────────────────────────────────
+  // klinecharts-pro wraps klinecharts internally and never exposes the raw
+  // Chart instance. We recover it by finding the element stamped with
+  // [k-line-chart-id] and passing it to klineInit(), which looks up the
+  // already-registered instance from its internal map via dom.id.
+  const resolveInnerChart = (): Chart | null => {
+    if (innerChartRef.current) return innerChartRef.current;
+    const el = containerRef.current?.querySelector(
+      "[k-line-chart-id]",
+    ) as HTMLElement | null;
+    const chartId = el?.getAttribute("k-line-chart-id");
+    if (!el || !chartId) return null;
+    el.id = chartId;
+    const chart = klineInit(el) as Chart | null;
+    if (chart) innerChartRef.current = chart;
+    return chart;
+  };
+
+  // Fetch grouped trade markers for the visible window
+  const { data: chartTradesData } = useBacktestChartTrades(
+    strategyId,
+    activeBacktestId ?? "",
+    debouncedRange?.from ?? 0,
+    debouncedRange?.to ?? 0,
+    backtestDetail?.timeframe ?? TimeframeEnum.FIVE_MIN,
+    { enabled: !!activeBacktestId && !!debouncedRange },
+  );
+
+  // ── Chart initialisation ───────────────────────────────────────────────────
+  // The chart is recreated whenever backtestDetail changes so the correct
+  // symbol and period are passed directly to the KLineChartPro constructor.
+  //
+  // WHY NOT setSymbol() + setPeriod()?
+  // klinecharts-pro uses SolidJS 1.6 which runs reactive effects synchronously
+  // outside a batch. Calling setSymbol() triggers the data-fetch effect
+  // immediately (sets internal flag a=true). The subsequent setPeriod() call
+  // hits a=true and is silently skipped — candles never reload.
+  // Recreating the chart avoids this race entirely.
 
   useEffect(() => {
     if (!containerRef.current || markets.length === 0) return;
 
+    // Wait for backtest data before creating the chart so the constructor
+    // receives the correct symbol/period in one shot.
+    if (activeBacktestId && backtestDetail === undefined) return;
+
     const container = containerRef.current;
-    let isMounted = true; // Track if effect is still active (handles Strict Mode)
+    let isMounted = true;
+
+    // Capture backtest at effect-invocation time (closure-safe).
+    const capturedBacktest = activeBacktestId ? (backtestDetail ?? null) : null;
 
     const init = async () => {
-      // Load saved preferences
       const saved = loadChartPreferences(strategyId);
-      const symbolTicker = saved?.symbol ?? DEFAULT_SYMBOL;
-      const periodObj = findPeriod(saved?.timeframe ?? DEFAULT_PERIOD_TEXT);
 
-      // Get price precision
+      const symbolTicker =
+        capturedBacktest?.symbol ?? saved?.symbol ?? DEFAULT_SYMBOL;
+
       const price = await fetchLatestPrice(symbolTicker);
       const precision = calculatePricePrecision(price);
-
-      // Check if effect was cleaned up during async operations
       if (!isMounted) return;
 
-      // Create datafeed with preference persistence callback
-      const datafeed = new BybitDatafeed(markets, (symbol, periodText) => {
-        saveChartPreferences(strategyId, {
-          symbol,
-          timeframe: periodText,
-        });
-      });
+      const periodObj = capturedBacktest
+        ? findPeriod(timeframeEnumToPeriodText(capturedBacktest.timeframe))
+        : findPeriod(saved?.timeframe ?? DEFAULT_PERIOD_TEXT);
+
+      const datafeed = new BybitDatafeed(
+        markets,
+        (symbol, periodText) => {
+          saveChartPreferences(strategyId, { symbol, timeframe: periodText });
+        },
+        (from, to) => {
+          if (isMounted) setVisibleRange({ from, to });
+        },
+      );
       datafeedRef.current = datafeed;
 
-      // Initialize chart
       const chart = new KLineChartPro({
         container,
         theme: "dark",
@@ -213,16 +376,77 @@ export function TradingChart({ strategyId }: TradingChartProps) {
     init();
 
     return () => {
-      isMounted = false; // Prevent async init from completing
-      // Properly dispose of the chart (removes DOM elements)
+      isMounted = false;
       if (container) {
-        dispose(container);
+        dispose(container);       // klinecharts: removes internal canvas/panes
+        container.textContent = ""; // clears SolidJS DOM left behind by klinecharts-pro
       }
       datafeedRef.current?.destroy();
       datafeedRef.current = null;
       chartRef.current = null;
+      innerChartRef.current = null;
+      tradeOverlayIdsRef.current = [];
     };
-  }, [markets, strategyId]);
+  // backtestDetail in deps: recreate chart when backtest changes so
+  // constructor gets the new symbol/period (avoids setSymbol race).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [markets, strategyId, activeBacktestId, backtestDetail]);
+
+  // ── Clear visible-range state when backtest is deselected ──────────────────
+
+  useEffect(() => {
+    if (!activeBacktestId) {
+      setVisibleRange(null);
+    }
+  }, [activeBacktestId]);
+
+  // ── Render grouped trade markers as overlays ───────────────────────────────
+
+  useEffect(() => {
+    const inner = resolveInnerChart();
+    if (!inner) return;
+
+    tradeOverlayIdsRef.current.forEach((id) => inner.removeOverlay(id));
+    tradeOverlayIdsRef.current = [];
+
+    if (!chartTradesData?.data?.length) return;
+
+    const candleMap = new Map(inner.getDataList().map((c) => [c.timestamp, c]));
+
+    const overlays: OverlayCreate[] = chartTradesData.data.flatMap((group) => {
+      const results: OverlayCreate[] = [];
+      const candle = candleMap.get(group.timestamp);
+
+      if (group.buyCount > 0) {
+        results.push({
+          name: "buyTradeMarker",
+          groupId: "backtest-trades",
+          points: [{ timestamp: group.timestamp, value: candle?.low ?? 0 }],
+          extendData: group.buyCount,
+        });
+      }
+
+      if (group.sellCount > 0) {
+        results.push({
+          name: "sellTradeMarker",
+          groupId: "backtest-trades",
+          points: [{ timestamp: group.timestamp, value: candle?.high ?? 0 }],
+          extendData: group.sellCount,
+        });
+      }
+
+      return results;
+    });
+
+    if (overlays.length > 0) {
+      const ids = inner.createOverlay(overlays);
+      tradeOverlayIdsRef.current = (Array.isArray(ids) ? ids : [ids]).filter(
+        (id): id is string => id !== null,
+      );
+    }
+  }, [chartTradesData]);
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   if (marketsLoading || markets.length === 0) {
     return (

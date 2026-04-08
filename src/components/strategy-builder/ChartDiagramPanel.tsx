@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Expand } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
@@ -30,6 +30,7 @@ interface ChartDiagramPanelProps {
   draftVersion: number;
   liveVersion: number;
   isLoading?: boolean;
+  activeBacktestId?: string;
 }
 
 export function ChartDiagramPanel({
@@ -39,8 +40,14 @@ export function ChartDiagramPanel({
   draftVersion,
   liveVersion,
   isLoading = false,
+  activeBacktestId,
 }: ChartDiagramPanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>("diagram");
+
+  // Auto-switch to chart tab when a backtest is selected
+  useEffect(() => {
+    if (activeBacktestId) setActiveTab("chart");
+  }, [activeBacktestId]);
   const [selectedSource, setSelectedSource] = useState<ConfigSource>(
     draftConfigJson != null ? "draft" : "live",
   );
@@ -111,7 +118,7 @@ export function ChartDiagramPanel({
         <div className="flex-1 min-h-0 relative">
           {activeTab === "chart" ? (
             <div className="absolute inset-0">
-              <TradingChart strategyId={strategyId} />
+              <TradingChart strategyId={strategyId} activeBacktestId={activeBacktestId} />
             </div>
           ) : (
             <div className="absolute inset-0">

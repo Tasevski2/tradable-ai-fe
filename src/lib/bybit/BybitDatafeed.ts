@@ -86,6 +86,7 @@ export function calculatePricePrecision(price: number): number {
 export class BybitDatafeed {
   private markets: string[];
   private onPreferenceChange?: (symbol: string, periodText: string) => void;
+  private onRangeChange?: (from: number, to: number) => void;
 
   // WebSocket state
   private ws: WebSocket | null = null;
@@ -106,9 +107,11 @@ export class BybitDatafeed {
   constructor(
     markets: string[],
     onPreferenceChange?: (symbol: string, periodText: string) => void,
+    onRangeChange?: (from: number, to: number) => void,
   ) {
     this.markets = markets;
     this.onPreferenceChange = onPreferenceChange;
+    this.onRangeChange = onRangeChange;
   }
 
   // ── searchSymbols ──────────────────────────────────────────
@@ -176,6 +179,8 @@ export class BybitDatafeed {
           turnover: Number(row[6]),
         }))
         .reverse();
+
+      this.onRangeChange?.(from, to);
 
       return klines;
     } catch (err) {
