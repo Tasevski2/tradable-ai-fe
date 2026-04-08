@@ -133,8 +133,10 @@ src/
 │   │   ├── HoldButton.tsx            # Press-and-hold confirmation button
 │   │   ├── MarkdownContent.tsx       # Markdown renderer with remark-gfm
 │   │   ├── Modal.tsx                 # Reusable modal
+│   │   ├── PaginationControls.tsx    # Reusable pagination controls
 │   │   ├── Skeleton.tsx              # Loading skeleton
 │   │   ├── Spinner.tsx               # Loading spinner
+│   │   ├── TableBodySkeleton.tsx     # Table row skeleton for loading states
 │   │   ├── menubar.tsx               # Radix menubar
 │   │   ├── select.tsx                # Radix select
 │   │   └── tooltip.tsx               # Radix tooltip
@@ -175,8 +177,14 @@ src/
 │   │   ├── BacktestHistoryPanel.tsx  # Backtest history list
 │   │   ├── BacktestTradesModal.tsx   # Backtest trades modal
 │   │   ├── LivePositionsPanel.tsx    # Live positions table
+│   │   ├── ActivityItems.tsx         # Activity feed item renderers
 │   │   ├── RecentActivityPanel.tsx   # Activity feed
-│   │   ├── DeployModal.tsx           # Deploy strategy modal
+│   │   ├── DeployModal.tsx           # Deploy strategy modal (orchestrator)
+│   │   ├── DeployMarketSelector.tsx  # Market selection step in deploy flow
+│   │   ├── DeployLiveParametersSection.tsx # Live trading parameters section
+│   │   ├── DeployStrategyLogicSection.tsx  # Strategy logic review section
+│   │   ├── useDeployModal.ts         # Deploy modal state/logic hook
+│   │   ├── useDeployMarketSelection.ts # Market selection state hook
 │   │   ├── MarketsListModal.tsx      # Markets selection modal
 │   │   ├── MarketListItem.tsx        # Market list item
 │   │   ├── StrategyOrdersModal.tsx   # Orders history modal
@@ -200,6 +208,7 @@ src/
 │   │   ├── MainLayout.tsx            # Sidebar + content layout
 │   │   ├── Sidebar.tsx               # Navigation sidebar
 │   │   ├── AccountSummary.tsx        # Account balance summary
+│   │   ├── BybitApiConnectionSection.tsx # Bybit API key connection UI
 │   │   ├── StrategyHeader.tsx        # Shared strategy header
 │   │   ├── StrategyLayout.tsx        # Strategy page layout
 │   │   ├── UserProfileModal.tsx      # User profile / API keys modal
@@ -232,6 +241,7 @@ src/
 │   │   │   ├── useBacktestDetail.ts
 │   │   │   ├── useBacktestTrades.ts
 │   │   │   ├── useBacktestEquity.ts
+│   │   │   ├── useBacktestChartTrades.ts
 │   │   │   ├── useStrategyPositions.ts
 │   │   │   ├── useStrategyOrders.ts
 │   │   │   └── useChatMessages.ts
@@ -251,6 +261,7 @@ src/
 │   │       └── useCloseAllPositions.ts
 │   │
 │   ├── sse/                          # Server-Sent Events
+│   │   ├── constants.ts              # SSE event type constants
 │   │   ├── useEventsStream.ts        # Global events stream (positions, backtests)
 │   │   └── useChatStream.ts          # Per-strategy AI chat stream
 │   │
@@ -272,14 +283,22 @@ src/
 │   │   ├── cn.ts                     # className merger (clsx + tailwind-merge)
 │   │   ├── format.ts                 # Number/date formatting
 │   │   ├── errors.ts                 # Error handling utilities
+│   │   ├── position.ts               # Position calculation helpers
 │   │   ├── status.ts                 # Strategy status helpers
 │   │   └── timeframe.ts              # Timeframe conversion utilities
+│   │
+│   ├── storage/                      # localStorage persistence helpers
+│   │   └── backtestPreferences.ts    # Backtest symbol/timeframe preferences
 │   │
 │   └── env.ts                        # Zod-validated environment variables
 │
 ├── hooks/                            # Custom React hooks
 │   ├── index.ts
+│   ├── useAutoResizeTextarea.ts      # Auto-resize textarea height hook
+│   ├── useChatScroll.ts              # Chat panel scroll management hook
 │   ├── useDebounce.ts                # Debounced value hook
+│   ├── useModalKeydown.ts            # Keyboard event handler for modals (Escape)
+│   ├── usePaginatedModal.ts          # Paginated data loading for modals
 │   └── usePaginationInfo.ts          # Pagination state hook
 │
 ├── stores/                           # Zustand stores
@@ -361,7 +380,8 @@ All endpoints defined in `src/lib/api/endpoints.ts`:
 - `GET /api/strategies/:id/backtests?page=&limit=` - List backtests
 - `GET /api/strategies/:id/backtests/latest` - Latest backtest
 - `GET /api/strategies/:id/backtests/:backtestId` - Backtest detail
-- `GET /api/strategies/:id/backtests/:backtestId/trades?page=&limit=` - Backtest trades
+- `GET /api/strategies/:id/backtests/:backtestId/trades?page=&limit=` - Backtest trades (paginated)
+- `GET /api/strategies/:id/backtests/:backtestId/trades/chart?from=&to=&timeframe=` - Backtest trades grouped by candle for chart overlays
 - `GET /api/strategies/:id/backtests/latest/equity` - Latest equity curve
 - `GET /api/strategies/:id/backtests/:backtestId/equity` - Specific equity curve
 

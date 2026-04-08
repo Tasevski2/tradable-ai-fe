@@ -9,8 +9,6 @@ Build strategies through conversation with AI, backtest against historical data,
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?logo=tailwindcss)
 
-> **Note:** This project was built under a tight deadline. Active refactoring and improvements are in progress.
-
 ---
 
 ## Demo
@@ -106,24 +104,26 @@ src/
 │   └── strategies/[strategyId]/  # Public: strategy builder (AI chat + chart)
 │
 ├── components/
-│   ├── ui/                       # Base UI (Modal, Skeleton, Spinner, HoldButton)
-│   ├── charts/                   # TradingChart, EquityCurveChart
+│   ├── ui/                       # Base UI (Modal, Skeleton, Spinner, HoldButton, PaginationControls)
+│   ├── charts/                   # TradingChart (klinecharts + Bybit datafeed), EquityCurveChart
 │   ├── home/                     # Landing page, prompt input, recent strategies
 │   ├── strategy-builder/         # Chat panel, backtest panel, chart/diagram toggle
-│   ├── strategy-details/         # Detail page: positions, backtests, deploy, orders
+│   ├── strategy-details/         # Detail page: positions, backtests, deploy flow, orders, activity
 │   ├── strategy-flow/            # ReactFlow diagram with custom nodes + Dagre layout
-│   ├── layout/                   # Sidebar, MainLayout, AccountSummary
+│   ├── layout/                   # Sidebar, MainLayout, AccountSummary, BybitApiConnectionSection
 │   └── providers/                # ReactQuery, Privy, Auth, EventsStream providers
 │
 ├── lib/
 │   ├── api/                      # Fetch client, endpoints, query keys, queries, mutations
-│   ├── sse/                      # useEventsStream (global), useChatStream (per-strategy)
+│   ├── sse/                      # constants, useEventsStream (global), useChatStream (per-strategy)
 │   ├── auth/                     # useAuth, useLogin, useLogout
 │   ├── bybit/                    # Datafeed adapter, WebSocket, chart preferences
+│   ├── storage/                  # localStorage persistence (backtest preferences)
 │   ├── validations/              # Zod schemas for forms
-│   └── utils/                    # cn, format, errors, status, timeframe helpers
+│   └── utils/                    # cn, format, errors, position, status, timeframe helpers
 │
-├── hooks/                        # useDebounce, usePaginationInfo
+├── hooks/                        # useDebounce, usePaginationInfo, useChatScroll,
+│                                 # useAutoResizeTextarea, useModalKeydown, usePaginatedModal
 ├── stores/                       # Zustand auth store
 └── types/                        # API response types, strategy types, common enums
 ```
