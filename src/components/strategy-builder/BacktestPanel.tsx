@@ -49,7 +49,6 @@ export function BacktestPanel({
 
   return (
     <div className="panel flex flex-col">
-      {/* Header */}
       <div className="panel-header">
         <h2>Backtests</h2>
         <div className="flex items-center gap-2">
@@ -75,9 +74,7 @@ export function BacktestPanel({
         </div>
       </div>
 
-      {/* Body - Grid layout */}
       <div className="p-3 grid grid-cols-[1.1fr_0.9fr] gap-3">
-        {/* History Table */}
         <div>
           <BacktestHistoryTable
             strategyId={strategyId}
@@ -86,9 +83,8 @@ export function BacktestPanel({
           />
         </div>
 
-        {/* Details Panel */}
         <div>
-          <BacktestDetailsCompact
+          <BacktestDetails
             strategyId={strategyId}
             backtestId={selectedBacktestId}
             setSelectedBacktestId={onBacktestSelect}
@@ -96,35 +92,12 @@ export function BacktestPanel({
         </div>
       </div>
 
-      {/* Settings Modal */}
       <BacktestSettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         strategyId={strategyId}
       />
     </div>
-  );
-}
-
-/**
- * Compact version of BacktestDetails for the builder page
- */
-function BacktestDetailsCompact({
-  strategyId,
-  backtestId,
-  setSelectedBacktestId,
-}: {
-  strategyId: string;
-  backtestId?: string;
-  setSelectedBacktestId: (backtestId: string) => void;
-}) {
-  // Reuse the existing BacktestDetails component
-  return (
-    <BacktestDetails
-      strategyId={strategyId}
-      backtestId={backtestId}
-      setSelectedBacktestId={setSelectedBacktestId}
-    />
   );
 }
 

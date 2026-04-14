@@ -1,54 +1,74 @@
 "use client";
 
-import type { UseFormRegister, FieldErrors } from "react-hook-form";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Spinner } from "@/components/ui/Spinner";
 import { HoldButton } from "@/components/ui/HoldButton";
-import type { ApiKeysFormData } from "@/lib/validations/apiKeys";
-import type { BybitAccount } from "@/types/api";
-
-interface SyncStyle {
-  bg: string;
-  text: string;
-  label: string;
-}
+import { useBybitAccount } from "@/lib/api/queries";
+import { useSetApiKeys, useRemoveApiKeys } from "@/lib/api/mutations";
+import {
+  apiKeysSchema,
+  type ApiKeysFormData,
+} from "@/lib/validations/apiKeys";
+import { getErrorMessage, is404Error } from "@/lib/utils/errors";
+import { getBybitSyncStatusStyle } from "@/lib/utils/status";
+import { BybitSyncStatusEnum } from "@/types/api";
 
 interface BybitApiConnectionSectionProps {
-  account: BybitAccount | undefined;
-  isLoadingAccount: boolean;
-  accountError: string | null;
-  removeError: string | null;
-  hasApiKeys: boolean;
-  hasSyncError: boolean;
-  syncStyle: SyncStyle | null;
-  // Form
-  register: UseFormRegister<ApiKeysFormData>;
-  errors: FieldErrors<ApiKeysFormData>;
-  onSubmit: (e: React.FormEvent) => void;
-  mutationError: string | null;
-  isPendingSetKeys: boolean;
-  isSuccessSetKeys: boolean;
-  // Remove keys
-  onRemoveKeys: () => void;
-  isPendingRemoveKeys: boolean;
+  isOpen: boolean;
 }
 
 export function BybitApiConnectionSection({
-  account,
-  isLoadingAccount,
-  accountError,
-  removeError,
-  hasApiKeys,
-  hasSyncError,
-  syncStyle,
-  register,
-  errors,
-  onSubmit,
-  mutationError,
-  isPendingSetKeys,
-  isSuccessSetKeys,
-  onRemoveKeys,
-  isPendingRemoveKeys,
+  isOpen,
 }: BybitApiConnectionSectionProps) {
+  const {
+    data: account,
+    isLoading: isLoadingAccount,
+    error: accountQueryError,
+  } = useBybitAccount();
+
+  const setApiKeysMutation = useSetApiKeys();
+  const removeApiKeysMutation = useRemoveApiKeys();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ApiKeysFormData>({
+    resolver: zodResolver(apiKeysSchema),
+    defaultValues: { apiKey: "", apiSecret: "" },
+  });
+
+  useEffect(() => {
+    if (!isOpen) reset();
+  }, [isOpen, reset]);
+
+  const accountNotFound = is404Error(accountQueryError);
+  const hasApiKeys = !!account && !accountNotFound;
+  const hasSyncError = account?.syncStatus === BybitSyncStatusEnum.ERROR;
+  const syncStyle = account
+    ? getBybitSyncStatusStyle(account.syncStatus)
+    : null;
+
+  const accountError =
+    accountQueryError && !accountNotFound
+      ? getErrorMessage(accountQueryError, "Failed to load account")
+      : null;
+
+  const mutationError = setApiKeysMutation.error
+    ? getErrorMessage(setApiKeysMutation.error, "Failed to set API keys")
+    : null;
+
+  const removeError = removeApiKeysMutation.error
+    ? getErrorMessage(removeApiKeysMutation.error, "Failed to remove API keys")
+    : null;
+
+  const onSubmit = handleSubmit((data) => {
+    setApiKeysMutation.mutate(data, { onSuccess: () => reset() });
+  });
+
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-medium text-foreground">
@@ -174,7 +194,7 @@ export function BybitApiConnectionSection({
             </div>
           )}
 
-          {isSuccessSetKeys && (
+          {setApiKeysMutation.isSuccess && (
             <div className="text-sm text-bullish bg-bullish/10 border border-bullish/20 rounded-lg px-3 py-2">
               API keys {hasApiKeys ? "updated" : "set"} successfully
             </div>
@@ -182,10 +202,10 @@ export function BybitApiConnectionSection({
 
           <button
             type="submit"
-            disabled={isPendingSetKeys}
+            disabled={setApiKeysMutation.isPending}
             className="w-full px-4 py-2 text-sm btn-primary rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isPendingSetKeys
+            {setApiKeysMutation.isPending
               ? "Saving..."
               : hasApiKeys
                 ? "Update API Keys"
@@ -197,8 +217,8 @@ export function BybitApiConnectionSection({
       {!isLoadingAccount && hasApiKeys && (
         <div className="pt-2">
           <HoldButton
-            onComplete={onRemoveKeys}
-            isPending={isPendingRemoveKeys}
+            onComplete={() => removeApiKeysMutation.mutate()}
+            isPending={removeApiKeysMutation.isPending}
             labels={{
               default: "Remove API Keys (Hold)",
               holding: "Hold to remove...",

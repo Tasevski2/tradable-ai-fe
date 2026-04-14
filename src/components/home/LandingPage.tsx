@@ -4,6 +4,21 @@ import Image from "next/image";
 import { Check } from "lucide-react";
 import { useLogin } from "@/lib/auth/useLogin";
 
+const FEATURES: { title: string; description: string }[] = [
+  {
+    title: "AI-Powered Strategy Builder",
+    description: "Describe your trading idea in plain English",
+  },
+  {
+    title: "Historical Backtesting",
+    description: "Test strategies against real market data",
+  },
+  {
+    title: "Live Trading on Bybit",
+    description: "Execute strategies automatically 24/7",
+  },
+];
+
 export function LandingPage() {
   const login = useLogin();
 
@@ -46,47 +61,21 @@ export function LandingPage() {
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-bullish/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Check size={14} className="text-bullish" />
-              </div>
-              <div>
-                <div className="text-foreground font-medium">
-                  AI-Powered Strategy Builder
+            {FEATURES.map((feature) => (
+              <div key={feature.title} className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-bullish/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <Check size={14} className="text-bullish" />
                 </div>
-                <div className="text-sm text-foreground-muted">
-                  Describe your trading idea in plain English
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-bullish/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Check size={14} className="text-bullish" />
-              </div>
-              <div>
-                <div className="text-foreground font-medium">
-                  Historical Backtesting
-                </div>
-                <div className="text-sm text-foreground-muted">
-                  Test strategies against real market data
+                <div>
+                  <div className="text-foreground font-medium">
+                    {feature.title}
+                  </div>
+                  <div className="text-sm text-foreground-muted">
+                    {feature.description}
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-bullish/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Check size={14} className="text-bullish" />
-              </div>
-              <div>
-                <div className="text-foreground font-medium">
-                  Live Trading on Bybit
-                </div>
-                <div className="text-sm text-foreground-muted">
-                  Execute strategies automatically 24/7
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
 
           <button

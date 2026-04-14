@@ -7,16 +7,13 @@ import { cn } from "@/lib/utils/cn";
 import { getTimeframeLabel } from "@/lib/utils/timeframe";
 import {
   formatCurrency,
-  formatSmartCurrency,
   formatPnlPercent,
   formatPercentDisplay,
   formatRatio,
-  formatDuration,
-  formatDateTime,
 } from "@/lib/utils/format";
 import { useBacktestDetail, useBacktestEquity } from "@/lib/api/queries";
 import { BacktestTradesModal } from "./BacktestTradesModal";
-import type { BacktestMetrics } from "@/types/api";
+import { BacktestMetricsTabs, type TabType } from "./BacktestMetrics";
 
 const EquityCurveChart = dynamic(
   () =>
@@ -37,157 +34,12 @@ interface BacktestDetailsProps {
   setSelectedBacktestId: (backtestId: string) => void;
 }
 
-type TabType = "overview" | "trades" | "risk" | "activity";
-
-interface MetricCardProps {
-  label: string;
-  value: React.ReactNode;
-  sub?: React.ReactNode;
-  className?: string;
-  valueClassName?: string;
-}
-
-function MetricCard({
-  label,
-  value,
-  sub,
-  className,
-  valueClassName,
-}: MetricCardProps) {
-  return (
-    <div className={cn("metric-card", className)}>
-      <div className="metric-label">{label}</div>
-      <div className={cn("metric-value", valueClassName)}>{value}</div>
-      {sub && <div className="metric-sub">{sub}</div>}
-    </div>
-  );
-}
-
-function OverviewTab({ metrics }: { metrics: BacktestMetrics }) {
-  return (
-    <div className="grid grid-cols-2 gap-2.5">
-      <MetricCard
-        label="Initial Equity"
-        value={formatCurrency(metrics.initialEquityUsd)}
-      />
-      <MetricCard
-        label="Final Equity"
-        value={formatCurrency(metrics.finalEquityUsd)}
-      />
-      <MetricCard
-        label="Avg Hold Time"
-        value={formatDuration(metrics.avgHoldMinutes)}
-      />
-      <MetricCard
-        label="Trades / Day"
-        value={formatRatio(metrics.tradesPerDay)}
-      />
-    </div>
-  );
-}
-
-function TradesTab({ metrics }: { metrics: BacktestMetrics }) {
-  return (
-    <div className="grid grid-cols-2 gap-2.5">
-      <MetricCard label="Total Trades" value={metrics.totalTrades} />
-      <MetricCard
-        label="Wins / Losses / Breakeven"
-        value={
-          <>
-            <span className="text-bullish">{metrics.wins}</span>
-            {" / "}
-            <span className="text-bearish">{metrics.losses}</span>
-            {" / "}
-            <span className="text-foreground-muted">{metrics.breakeven}</span>
-          </>
-        }
-      />
-      <MetricCard
-        label="Avg PnL"
-        value={formatSmartCurrency(metrics.avgPnlUsd)}
-        valueClassName={
-          metrics.avgPnlUsd.startsWith("-") ? "text-bearish" : "text-bullish"
-        }
-      />
-      <MetricCard
-        label="Avg Win / Loss"
-        value={
-          <>
-            <span className="text-bullish">
-              {formatSmartCurrency(metrics.avgWinUsd)}
-            </span>
-            {" / "}
-            <span className="text-bearish">
-              {formatSmartCurrency(metrics.avgLossUsd)}
-            </span>
-          </>
-        }
-        valueClassName="text-sm"
-      />
-      <MetricCard
-        label="Best Trade"
-        value={formatSmartCurrency(metrics.bestTradeUsd)}
-        valueClassName="text-bullish"
-      />
-      <MetricCard
-        label="Worst Trade"
-        value={formatSmartCurrency(metrics.worstTradeUsd)}
-        valueClassName="text-bearish"
-      />
-    </div>
-  );
-}
-
-function RiskTab({ metrics }: { metrics: BacktestMetrics }) {
-  return (
-    <div className="grid grid-cols-2 gap-2.5">
-      <MetricCard
-        label="Max Drawdown %"
-        value={formatPercentDisplay(metrics.maxDrawdownPct)}
-        valueClassName="text-bearish"
-      />
-      <MetricCard
-        label="Max Drawdown USD"
-        value={formatCurrency(metrics.maxDrawdownUsd)}
-        valueClassName="text-bearish"
-      />
-      <MetricCard
-        label="Return / Max Drawdown"
-        value={
-          metrics.returnOverMaxDrawdown
-            ? formatRatio(metrics.returnOverMaxDrawdown)
-            : "N/A"
-        }
-        className="col-span-2"
-      />
-    </div>
-  );
-}
-
-function ActivityTab({ metrics }: { metrics: BacktestMetrics }) {
-  return (
-    <div className="grid grid-cols-2 gap-2.5">
-      <MetricCard
-        label="Trades / Day"
-        value={formatRatio(metrics.tradesPerDay)}
-      />
-      <MetricCard
-        label="Avg Hold Time"
-        value={formatDuration(metrics.avgHoldMinutes)}
-      />
-      <MetricCard
-        label="Start Time"
-        value={formatDateTime(metrics.startT)}
-        valueClassName="text-sm"
-      />
-      <MetricCard
-        label="End Time"
-        value={formatDateTime(metrics.endT)}
-        valueClassName="text-sm"
-      />
-    </div>
-  );
-}
+const TABS: { id: TabType; label: string }[] = [
+  { id: "overview", label: "Overview" },
+  { id: "trades", label: "Trades" },
+  { id: "risk", label: "Risk" },
+  { id: "activity", label: "Activity" },
+];
 
 export function BacktestDetails({
   strategyId,
@@ -206,32 +58,8 @@ export function BacktestDetails({
     { enabled: !!backtest },
   );
 
-  const tabs: { id: TabType; label: string }[] = [
-    { id: "overview", label: "Overview" },
-    { id: "trades", label: "Trades" },
-    { id: "risk", label: "Risk" },
-    { id: "activity", label: "Activity" },
-  ];
-
   const metrics = backtest?.metrics;
   const isPnlPositive = metrics && !metrics.totalPnlUsd.startsWith("-");
-
-  const renderTabContent = () => {
-    if (!metrics) return null;
-
-    switch (activeTab) {
-      case "overview":
-        return <OverviewTab metrics={metrics} />;
-      case "trades":
-        return <TradesTab metrics={metrics} />;
-      case "risk":
-        return <RiskTab metrics={metrics} />;
-      case "activity":
-        return <ActivityTab metrics={metrics} />;
-      default:
-        return null;
-    }
-  };
 
   useEffect(() => {
     if (backtestId || isLoading || !backtest) return;
@@ -325,7 +153,7 @@ export function BacktestDetails({
 
             <div className="flex items-center justify-between flex-wrap gap-3 mt-3">
               <div className="flex gap-2 flex-wrap">
-                {tabs.map((tab) => (
+                {TABS.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
@@ -343,7 +171,9 @@ export function BacktestDetails({
               </button>
             </div>
 
-            <div className="mt-3">{renderTabContent()}</div>
+            <div className="mt-3">
+              <BacktestMetricsTabs metrics={metrics} activeTab={activeTab} />
+            </div>
           </>
         )}
       </div>
